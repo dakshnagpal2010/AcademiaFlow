@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { updateUserSchema, type UpdateUser } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
   DialogContent,
@@ -13,249 +16,258 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Upload, X } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 
 interface ProfileCustomizationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function ProfileCustomizationModal({ 
-  open, 
-  onOpenChange 
-}: ProfileCustomizationModalProps) {
+export default function ProfileCustomizationModal({ open, onOpenChange }: ProfileCustomizationModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [formData, setFormData] = useState({
-    displayName: user?.displayName || "",
-    bio: user?.bio || "",
-    academicYear: user?.academicYear || "",
-    major: user?.major || "",
-    theme: user?.theme || "default",
-    animationsEnabled: user?.animationsEnabled ?? true,
-    compactMode: user?.compactMode ?? false,
+  const form = useForm<UpdateUser>({
+    resolver: zodResolver(updateUserSchema),
+    defaultValues: {
+      displayName: user?.displayName || "",
+      bio: user?.bio || "",
+      academicYear: user?.academicYear || "",
+      major: user?.major || "",
+      theme: user?.theme || "default",
+      animationsEnabled: user?.animationsEnabled ?? true,
+      compactMode: user?.compactMode ?? false,
+    },
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: any) => {
-      await apiRequest("PATCH", "/api/user/profile", data);
+    mutationFn: async (data: UpdateUser) => {
+      return await apiRequest("/api/user/profile", {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "Success",
-        description: "Profile updated successfully!",
+        title: "Profile updated",
+        description: "Your profile has been successfully updated.",
       });
       onOpenChange(false);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
+        title: "Update failed",
+        description: error.message || "Failed to update profile. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfileMutation.mutate(formData);
+  const onSubmit = (data: UpdateUser) => {
+    updateProfileMutation.mutate(data);
   };
-
-  const getInitials = (user: any) => {
-    if (formData.displayName) {
-      return formData.displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase();
-    }
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-    }
-    if (user?.email) {
-      return user.email[0].toUpperCase();
-    }
-    return "U";
-  };
-
-  const themeOptions = [
-    { value: "default", name: "Default", gradient: "from-primary-500 to-purple-500" },
-    { value: "nature", name: "Nature", gradient: "from-green-500 to-teal-500" },
-    { value: "sunset", name: "Sunset", gradient: "from-orange-500 to-pink-500" },
-  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-dark-secondary border-gray-700 max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md bg-gray-950 border-gray-800 text-white">
         <DialogHeader>
-          <DialogTitle className="text-white">Customize Profile</DialogTitle>
+          <DialogTitle>Customize Profile</DialogTitle>
           <DialogDescription className="text-gray-400">
-            Update your profile information and preferences
+            Personalize your StudyFlow experience with custom settings.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Profile Picture */}
-          <div>
-            <Label className="text-white mb-2 block">Profile Picture</Label>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Profile Picture */}
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16">
                 <AvatarImage src={user?.profileImageUrl} alt="Profile" />
-                <AvatarFallback className="bg-primary-500 text-white text-lg">
-                  {getInitials(user)}
+                <AvatarFallback className="bg-purple-500 text-white text-lg">
+                  {user?.firstName?.[0]}{user?.lastName?.[0]}
                 </AvatarFallback>
               </Avatar>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="border-gray-600 text-gray-300 hover:bg-dark-tertiary"
-                data-testid="button-change-photo"
+                className="border-gray-700 text-gray-300 hover:bg-gray-800"
+                onClick={() => {
+                  toast({
+                    title: "Feature Coming Soon",
+                    description: "Profile picture upload will be available soon.",
+                  });
+                }}
               >
-                <Upload className="h-4 w-4 mr-2" />
-                Change Photo
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Photo
               </Button>
             </div>
-          </div>
 
-          {/* Personal Information */}
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="displayName" className="text-white">Display Name</Label>
-              <Input
-                id="displayName"
-                value={formData.displayName}
-                onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                className="bg-dark-tertiary border-gray-600 text-white mt-1"
-                data-testid="input-display-name"
+            {/* Display Name */}
+            <FormField
+              control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-300">Display Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="input-display-name"
+                      placeholder="How you'd like to be addressed"
+                      {...field}
+                      className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Bio */}
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-300">Bio</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      data-testid="textarea-bio"
+                      placeholder="Tell us about yourself..."
+                      {...field}
+                      className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 resize-none"
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Academic Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="academicYear"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-300">Academic Year</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger
+                          data-testid="select-academic-year"
+                          className="bg-gray-900 border-gray-700 text-white"
+                        >
+                          <SelectValue placeholder="Select year" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-gray-900 border-gray-700">
+                        <SelectItem value="freshman">Freshman</SelectItem>
+                        <SelectItem value="sophomore">Sophomore</SelectItem>
+                        <SelectItem value="junior">Junior</SelectItem>
+                        <SelectItem value="senior">Senior</SelectItem>
+                        <SelectItem value="graduate">Graduate</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="major"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-300">Major</FormLabel>
+                    <FormControl>
+                      <Input
+                        data-testid="input-major"
+                        placeholder="e.g., Computer Science"
+                        {...field}
+                        className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
 
-            <div>
-              <Label htmlFor="bio" className="text-white">Bio</Label>
-              <Textarea
-                id="bio"
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Tell us about yourself..."
-                className="bg-dark-tertiary border-gray-600 text-white mt-1"
-                rows={3}
-                data-testid="textarea-bio"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="academicYear" className="text-white">Year/Grade</Label>
-              <Select
-                value={formData.academicYear}
-                onValueChange={(value) => setFormData({ ...formData, academicYear: value })}
-              >
-                <SelectTrigger className="bg-dark-tertiary border-gray-600 text-white mt-1" data-testid="select-academic-year">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent className="bg-dark-tertiary border-gray-600">
-                  <SelectItem value="freshman">Freshman</SelectItem>
-                  <SelectItem value="sophomore">Sophomore</SelectItem>
-                  <SelectItem value="junior">Junior</SelectItem>
-                  <SelectItem value="senior">Senior</SelectItem>
-                  <SelectItem value="graduate">Graduate</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="major" className="text-white">Major</Label>
-              <Input
-                id="major"
-                value={formData.major}
-                onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-                className="bg-dark-tertiary border-gray-600 text-white mt-1"
-                data-testid="input-major"
-              />
-            </div>
-          </div>
-
-          {/* Theme Customization */}
-          <div className="pt-6 border-t border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Theme Preferences</h3>
-            
+            {/* Theme Preferences */}
             <div className="space-y-4">
-              <div>
-                <Label className="text-white mb-2 block">Color Scheme</Label>
-                <div className="grid grid-cols-3 gap-3">
-                  {themeOptions.map((theme) => (
-                    <button
-                      key={theme.value}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, theme: theme.value })}
-                      className={`p-3 rounded-lg border-2 transition-colors ${
-                        formData.theme === theme.value
-                          ? "border-primary-500 bg-primary-500/20"
-                          : "border-gray-600 hover:border-gray-500"
-                      }`}
-                      data-testid={`button-theme-${theme.value}`}
-                    >
-                      <div className={`w-full h-4 bg-gradient-to-r ${theme.gradient} rounded`}></div>
-                      <p className="text-xs mt-2 text-gray-300">{theme.name}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <h4 className="text-sm font-medium text-gray-300">Preferences</h4>
+              
+              <FormField
+                control={form.control}
+                name="animationsEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0">
+                    <FormLabel className="text-gray-300">Enable Animations</FormLabel>
+                    <FormControl>
+                      <Switch
+                        data-testid="switch-animations"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-              <div className="flex items-center justify-between">
-                <Label className="text-white">Enable Animations</Label>
-                <Switch
-                  checked={formData.animationsEnabled}
-                  onCheckedChange={(checked) => 
-                    setFormData({ ...formData, animationsEnabled: checked })
-                  }
-                  data-testid="switch-animations"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Label className="text-white">Compact Mode</Label>
-                <Switch
-                  checked={formData.compactMode}
-                  onCheckedChange={(checked) => 
-                    setFormData({ ...formData, compactMode: checked })
-                  }
-                  data-testid="switch-compact-mode"
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="compactMode"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0">
+                    <FormLabel className="text-gray-300">Compact Mode</FormLabel>
+                    <FormControl>
+                      <Switch
+                        data-testid="switch-compact-mode"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex space-x-3 pt-4">
-            <Button
-              type="submit"
-              className="flex-1 bg-primary-500 hover:bg-primary-600 text-white"
-              disabled={updateProfileMutation.isPending}
-              data-testid="button-save-profile"
-            >
-              {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 border-gray-600 text-gray-300 hover:bg-dark-tertiary"
-              onClick={() => onOpenChange(false)}
-              data-testid="button-cancel-profile"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
+            {/* Submit Button */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="border-gray-700 text-gray-300 hover:bg-gray-800"
+              >
+                Cancel
+              </Button>
+              <Button
+                data-testid="button-save-profile"
+                type="submit"
+                className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                disabled={updateProfileMutation.isPending}
+              >
+                {updateProfileMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

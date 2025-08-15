@@ -6,203 +6,198 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Check, X, Brain, Lightbulb, BarChart3, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Crown, 
+  Sparkles, 
+  Brain, 
+  TrendingUp, 
+  Calendar,
+  Bot,
+  CheckCircle,
+  Zap
+} from "lucide-react";
 
 interface PremiumUpgradeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function PremiumUpgradeModal({ 
-  open, 
-  onOpenChange 
-}: PremiumUpgradeModalProps) {
-  
-  const handleStartTrial = () => {
-    // TODO: Implement trial signup
-    console.log("Starting trial...");
+export default function PremiumUpgradeModal({ open, onOpenChange }: PremiumUpgradeModalProps) {
+  const { toast } = useToast();
+
+  const handleUpgrade = () => {
+    toast({
+      title: "Premium Upgrade",
+      description: "Premium upgrade functionality will be available soon! Stay tuned for AI-powered features.",
+    });
     onOpenChange(false);
   };
 
-  const handleUpgradeNow = () => {
-    // TODO: Implement payment flow
-    console.log("Upgrading to pro...");
-    onOpenChange(false);
-  };
-
-  const freeFeatures = [
-    "Up to 5 classes",
-    "Basic homework tracking",
-    "Calendar integration",
-    "Simple progress tracking",
-  ];
-
-  const proFeatures = [
-    "Unlimited classes",
-    "Advanced homework tracking",
-    "Smart calendar with AI scheduling",
-    "AI Study Assistant",
-    "Performance Analytics",
-    "Custom Study Plans",
-    "Priority Support",
-    "Advanced Customization",
-  ];
-
-  const aiFeatures = [
+  const premiumFeatures = [
     {
       icon: Brain,
-      title: "Smart Study Plans",
-      description: "AI creates personalized study schedules based on your workload",
+      title: "AI Study Assistant",
+      description: "Get personalized study recommendations and insights",
+      highlight: true,
     },
     {
-      icon: Lightbulb,
-      title: "Homework Help",
-      description: "Get instant explanations and study guidance",
+      icon: TrendingUp,
+      title: "Advanced Analytics",
+      description: "Deep insights into your study patterns and performance",
     },
     {
-      icon: BarChart3,
-      title: "Performance Insights",
-      description: "Track your progress with detailed analytics",
+      icon: Calendar,
+      title: "Smart Scheduling",
+      description: "AI-powered optimal study schedule generation",
+    },
+    {
+      icon: Bot,
+      title: "24/7 AI Tutor",
+      description: "Ask questions and get instant academic help",
+    },
+    {
+      icon: Zap,
+      title: "Priority Support",
+      description: "Get help faster with premium support",
+    },
+    {
+      icon: Sparkles,
+      title: "Exclusive Features",
+      description: "Early access to new features and beta testing",
     },
   ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-dark-secondary border-gray-700 max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="text-center mb-8">
-          <DialogTitle className="text-3xl font-bold text-white mb-2">
-            Upgrade to StudyFlow Pro
+      <DialogContent className="sm:max-w-2xl bg-gray-950 border-gray-800 text-white">
+        <DialogHeader>
+          <DialogTitle className="flex items-center space-x-2">
+            <Crown className="h-6 w-6 text-yellow-400" />
+            <span>Upgrade to StudyFlow Pro</span>
           </DialogTitle>
-          <DialogDescription className="text-gray-400 text-lg">
-            Unlock powerful AI features and advanced study tools
+          <DialogDescription className="text-gray-400">
+            Unlock AI-powered features and advanced analytics to supercharge your academic success.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Hero Image Placeholder */}
-        <div className="w-full h-48 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl mb-8 flex items-center justify-center">
-          <div className="text-center">
-            <Sparkles className="h-16 w-16 text-purple-400 mx-auto mb-4" />
-            <p className="text-purple-300 text-lg font-semibold">Advanced AI Interface</p>
-            <p className="text-purple-200 text-sm">Experience the future of studying</p>
-          </div>
-        </div>
+        <div className="space-y-6">
+          {/* Pricing Cards */}
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Free Plan */}
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-gray-300">Free Plan</CardTitle>
+                <CardDescription>Perfect for getting started</CardDescription>
+                <div className="text-2xl font-bold text-white">$0<span className="text-sm font-normal">/month</span></div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex items-center space-x-2 text-sm text-gray-400">
+                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <span>Basic homework tracking</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-400">
+                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <span>Class management</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-400">
+                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <span>Calendar integration</span>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Free Plan */}
-          <div className="bg-dark-tertiary rounded-xl p-6 border border-gray-600">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-white mb-2">Free</h3>
-              <div className="text-3xl font-bold text-white mb-2">
-                $0<span className="text-lg text-gray-400">/month</span>
-              </div>
-              <p className="text-gray-400">Perfect for getting started</p>
-            </div>
-            
-            <ul className="space-y-3 mb-6">
-              {freeFeatures.map((feature, index) => (
-                <li key={index} className="flex items-center space-x-3">
-                  <Check className="h-4 w-4 text-green-400 flex-shrink-0" />
-                  <span className="text-sm text-gray-300">{feature}</span>
-                </li>
-              ))}
-              <li className="flex items-center space-x-3 opacity-50">
-                <X className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                <span className="text-sm text-gray-500">AI Study Assistant</span>
-              </li>
-              <li className="flex items-center space-x-3 opacity-50">
-                <X className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                <span className="text-sm text-gray-500">Advanced Analytics</span>
-              </li>
-            </ul>
-            
-            <Button 
-              variant="outline" 
-              className="w-full border-gray-600 text-gray-400" 
-              disabled
-              data-testid="button-current-plan"
-            >
-              Current Plan
-            </Button>
-          </div>
-
-          {/* Pro Plan */}
-          <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl p-6 border-2 border-purple-500 relative premium-glow">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+            {/* Pro Plan */}
+            <Card className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-purple-500/50 relative">
+              <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-blue-500 text-white">
                 Most Popular
               </Badge>
-            </div>
-            
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-white mb-2">Pro</h3>
-              <div className="text-3xl font-bold text-white mb-2">
-                $9.99<span className="text-lg text-gray-400">/month</span>
-              </div>
-              <p className="text-gray-400">Everything you need to excel</p>
-            </div>
-            
-            <ul className="space-y-3 mb-6">
-              {proFeatures.map((feature, index) => (
-                <li key={index} className="flex items-center space-x-3">
-                  <Check className={`h-4 w-4 flex-shrink-0 ${
-                    index < 4 ? "text-green-400" : "text-purple-400"
-                  }`} />
-                  <span className="text-sm text-gray-300">{feature}</span>
-                </li>
-              ))}
-            </ul>
-            
-            <Button
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600"
-              onClick={handleStartTrial}
-              data-testid="button-start-trial"
-            >
-              <Crown className="h-4 w-4 mr-2" />
-              Start 7-Day Free Trial
-            </Button>
-          </div>
-        </div>
-
-        {/* AI Features Showcase */}
-        <div className="bg-dark-tertiary rounded-xl p-6 mb-6">
-          <h3 className="text-lg font-semibold text-white mb-4 text-center flex items-center justify-center">
-            <Brain className="h-5 w-5 mr-2 text-purple-400" />
-            AI Study Assistant Features
-          </h3>
-          <div className="grid md:grid-cols-3 gap-4">
-            {aiFeatures.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div key={index} className="text-center">
-                  <Icon className="h-8 w-8 text-purple-400 mx-auto mb-2" />
-                  <h4 className="font-medium text-white mb-2">{feature.title}</h4>
-                  <p className="text-sm text-gray-400">{feature.description}</p>
+              <CardHeader>
+                <CardTitle className="text-white flex items-center space-x-2">
+                  <Crown className="h-5 w-5 text-yellow-400" />
+                  <span>Pro Plan</span>
+                </CardTitle>
+                <CardDescription>AI-powered academic excellence</CardDescription>
+                <div className="text-3xl font-bold text-white">
+                  $9.99<span className="text-sm font-normal">/month</span>
                 </div>
-              );
-            })}
+                <p className="text-xs text-gray-400">Everything in Free, plus:</p>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {premiumFeatures.slice(0, 3).map((feature, index) => (
+                  <div key={index} className="flex items-center space-x-2 text-sm text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    <span>{feature.title}</span>
+                  </div>
+                ))}
+                <p className="text-xs text-purple-400 mt-2">+ 3 more premium features</p>
+              </CardContent>
+            </Card>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-center space-x-4">
-          <Button
-            variant="outline"
-            className="border-gray-600 text-gray-300 hover:bg-dark-tertiary px-6"
-            onClick={() => onOpenChange(false)}
-            data-testid="button-maybe-later"
-          >
-            Maybe Later
-          </Button>
-          <Button
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 px-8"
-            onClick={handleUpgradeNow}
-            data-testid="button-upgrade-now"
-          >
-            <Crown className="h-4 w-4 mr-2" />
-            Upgrade Now
-          </Button>
+          {/* Premium Features Grid */}
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
+              <Sparkles className="h-5 w-5 text-purple-400" />
+              <span>Premium Features</span>
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {premiumFeatures.map((feature, index) => (
+                <div 
+                  key={index}
+                  className={`p-4 rounded-lg border transition-colors ${
+                    feature.highlight 
+                      ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/50' 
+                      : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+                  }`}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className={`p-2 rounded-lg ${
+                      feature.highlight ? 'bg-purple-500/20' : 'bg-gray-800'
+                    }`}>
+                      <feature.icon className={`h-5 w-5 ${
+                        feature.highlight ? 'text-purple-400' : 'text-gray-400'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-white">{feature.title}</h4>
+                      <p className="text-sm text-gray-400 mt-1">{feature.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA Section */}
+          <div className="text-center space-y-4 p-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20">
+            <h3 className="text-xl font-semibold text-white">Ready to supercharge your studies?</h3>
+            <p className="text-gray-400">Join thousands of students who are already excelling with StudyFlow Pro.</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                data-testid="button-upgrade-now"
+                onClick={handleUpgrade}
+                className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                size="lg"
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                Upgrade to Pro
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="border-gray-700 text-gray-300 hover:bg-gray-800"
+                size="lg"
+              >
+                Maybe Later
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500">
+              30-day money-back guarantee • Cancel anytime
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
