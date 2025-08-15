@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 import {
   insertClassSchema,
   insertAssignmentSchema,
@@ -15,22 +15,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
   // User routes
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const updates = updateUserSchema.parse(req.body);
       const updatedUser = await storage.updateUser(userId, updates);
       
@@ -51,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Class routes
   app.get('/api/classes', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const classes = await storage.getClasses(userId);
       res.json(classes);
     } catch (error) {
@@ -62,7 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/classes', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const classData = insertClassSchema.parse({ ...req.body, userId });
       const newClass = await storage.createClass(classData);
       
@@ -96,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/classes/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       
       const classData = await storage.getClass(id);
       await storage.deleteClass(id);
@@ -118,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Assignment routes
   app.get('/api/assignments', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const assignments = await storage.getAssignments(userId);
       res.json(assignments);
     } catch (error) {
@@ -129,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/assignments/upcoming', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
       const assignments = await storage.getUpcomingAssignments(userId, limit);
       res.json(assignments);
@@ -141,7 +129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/assignments', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const assignmentData = insertAssignmentSchema.parse({ ...req.body, userId });
       const newAssignment = await storage.createAssignment(assignmentData);
       
@@ -175,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/assignments/:id/complete', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const completedAssignment = await storage.completeAssignment(id);
       
       // Log activity
@@ -196,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/assignments/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       
       const assignment = await storage.getAssignment(id);
       await storage.deleteAssignment(id);
@@ -218,7 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard routes
   app.get('/api/dashboard/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const stats = await storage.getDashboardStats(userId);
       res.json(stats);
     } catch (error) {
@@ -229,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/activities', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
       const activities = await storage.getActivities(userId, limit);
       res.json(activities);

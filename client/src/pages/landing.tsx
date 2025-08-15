@@ -1,181 +1,328 @@
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Calendar, CheckCircle, Brain, BarChart3, Zap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  GraduationCap, 
+  BookOpen, 
+  Calendar, 
+  Users, 
+  Sparkles, 
+  Target,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  Star,
+  ArrowRight
+} from "lucide-react";
 
-export default function Landing() {
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-dark-primary text-white">
-      {/* Header */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 via-purple-500/20 to-transparent"></div>
-        <div className="relative container mx-auto px-6 py-20">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="flex items-center justify-center space-x-3 mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-purple-500 rounded-2xl flex items-center justify-center">
-                <GraduationCap className="h-8 w-8 text-white" />
-              </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-500 to-purple-500 bg-clip-text text-transparent">
-                StudyFlow
-              </h1>
+    <div className="min-h-screen bg-black text-white">
+      {/* Hero Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center space-y-8 max-w-4xl mx-auto">
+          {/* Logo and Brand */}
+          <div className="flex items-center justify-center space-x-3">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+              <GraduationCap className="w-8 h-8 text-white" />
             </div>
-            
-            <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-              Smart Student
-              <br />
-              <span className="bg-gradient-to-r from-primary-500 to-purple-500 bg-clip-text text-transparent">
-                Productivity Platform
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              StudyFlow
+            </h1>
+          </div>
+
+          {/* Hero Headline */}
+          <div className="space-y-4">
+            <h2 className="text-4xl md:text-6xl font-bold leading-tight">
+              The Future of
+              <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                {" "}Student Productivity
               </span>
             </h2>
-            
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Transform your academic journey with AI-powered homework tracking, intelligent class management, 
-              and personalized study insights that help you excel.
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Revolutionize your academic journey with intelligent homework tracking, 
+              seamless class management, and AI-powered study assistance.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link href="/signup">
               <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white px-8 py-3 text-lg font-semibold"
-                onClick={() => window.location.href = '/api/login'}
                 data-testid="button-get-started"
+                size="lg" 
+                className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-lg px-8 py-6"
               >
                 Get Started Free
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
+            </Link>
+            <Link href="/signin">
               <Button 
-                size="lg" 
+                data-testid="button-sign-in"
                 variant="outline" 
-                className="border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white px-8 py-3 text-lg"
-                data-testid="button-learn-more"
+                size="lg" 
+                className="border-gray-700 text-white hover:bg-gray-800 text-lg px-8 py-6"
               >
-                Learn More
+                Sign In
               </Button>
+            </Link>
+          </div>
+
+          {/* Social Proof */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-8 border-t border-gray-800">
+            <div className="flex items-center space-x-2">
+              <div className="flex -space-x-2">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 border-2 border-black flex items-center justify-center text-xs font-semibold">
+                    {String.fromCharCode(64 + i)}
+                  </div>
+                ))}
+              </div>
+              <span className="text-gray-400">Join 10,000+ students</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              {[1,2,3,4,5].map(i => (
+                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              ))}
+              <span className="text-gray-400 ml-2">4.9/5 rating</span>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Features Section */}
-      <section className="py-20 bg-dark-secondary/50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold mb-4">Everything You Need to Succeed</h3>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Powerful tools designed specifically for modern students who want to stay organized and achieve their academic goals.
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center space-y-12">
+          <div className="space-y-4">
+            <h3 className="text-3xl font-bold">Powerful Features for Academic Success</h3>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Everything you need to stay organized, motivated, and ahead in your studies.
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="bg-dark-secondary border-gray-700 hover-lift">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <CheckCircle className="h-6 w-6 text-primary-500" />
-                </div>
-                <CardTitle className="text-white">Smart Homework Tracking</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Never miss a deadline with intelligent assignment management and priority-based organization.
-                </CardDescription>
-              </CardHeader>
-            </Card>
 
-            <Card className="bg-dark-secondary border-gray-700 hover-lift">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Smart Homework Tracking */}
+            <Card className="bg-gray-950 border-gray-800 hover:border-purple-500/50 transition-colors">
               <CardHeader>
                 <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <Calendar className="h-6 w-6 text-purple-500" />
+                  <BookOpen className="w-6 h-6 text-purple-400" />
                 </div>
-                <CardTitle className="text-white">Class Management</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Organize your courses, track schedules, and manage all your academic commitments in one place.
+                <CardTitle className="text-white">Smart Homework Tracking</CardTitle>
+                <CardDescription>
+                  Never miss a deadline with intelligent assignment management and priority sorting.
                 </CardDescription>
               </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-400">
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Automatic deadline reminders</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Priority-based organization</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Progress tracking</span>
+                  </li>
+                </ul>
+              </CardContent>
             </Card>
 
-            <Card className="bg-dark-secondary border-gray-700 hover-lift">
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <BarChart3 className="h-6 w-6 text-green-500" />
-                </div>
-                <CardTitle className="text-white">Progress Analytics</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Visualize your academic progress with detailed insights and performance tracking.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-500/30 hover-lift premium-glow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-500/30 rounded-lg flex items-center justify-center mb-4">
-                  <Brain className="h-6 w-6 text-purple-400" />
-                </div>
-                <CardTitle className="text-white flex items-center gap-2">
-                  AI Study Assistant
-                  <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full">PRO</span>
-                </CardTitle>
-                <CardDescription className="text-gray-300">
-                  Get personalized study recommendations and AI-powered homework help to maximize your learning.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="bg-dark-secondary border-gray-700 hover-lift">
+            {/* Class Management */}
+            <Card className="bg-gray-950 border-gray-800 hover:border-blue-500/50 transition-colors">
               <CardHeader>
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <Zap className="h-6 w-6 text-blue-500" />
+                  <Users className="w-6 h-6 text-blue-400" />
                 </div>
-                <CardTitle className="text-white">Quick Actions</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Streamlined interface with shortcuts for adding classes, assignments, and accessing key features.
+                <CardTitle className="text-white">Class Management</CardTitle>
+                <CardDescription>
+                  Organize all your courses with detailed information and visual schedules.
                 </CardDescription>
               </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-400">
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Course details & schedules</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Color-coded organization</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Quick assignment creation</span>
+                  </li>
+                </ul>
+              </CardContent>
             </Card>
 
-            <Card className="bg-dark-secondary border-gray-700 hover-lift">
+            {/* Calendar Integration */}
+            <Card className="bg-gray-950 border-gray-800 hover:border-green-500/50 transition-colors">
               <CardHeader>
-                <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <GraduationCap className="h-6 w-6 text-orange-500" />
+                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
+                  <Calendar className="w-6 h-6 text-green-400" />
                 </div>
-                <CardTitle className="text-white">Custom Themes</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Personalize your workspace with multiple themes and customization options to match your style.
+                <CardTitle className="text-white">Calendar Integration</CardTitle>
+                <CardDescription>
+                  Visualize your academic schedule with an intuitive calendar view.
                 </CardDescription>
               </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-400">
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Monthly & weekly views</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Assignment visualization</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Deadline tracking</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* AI Study Assistant */}
+            <Card className="bg-gray-950 border-gray-800 hover:border-yellow-500/50 transition-colors md:col-span-2 lg:col-span-1">
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-yellow-400" />
+                  </div>
+                  <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                    Premium
+                  </Badge>
+                </div>
+                <CardTitle className="text-white">AI Study Assistant</CardTitle>
+                <CardDescription>
+                  Get personalized study recommendations and academic insights powered by AI.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-400">
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Personalized study plans</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Performance analytics</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Smart recommendations</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Analytics & Insights */}
+            <Card className="bg-gray-950 border-gray-800 hover:border-cyan-500/50 transition-colors">
+              <CardHeader>
+                <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-4">
+                  <TrendingUp className="w-6 h-6 text-cyan-400" />
+                </div>
+                <CardTitle className="text-white">Analytics & Insights</CardTitle>
+                <CardDescription>
+                  Track your academic progress with detailed analytics and performance metrics.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-400">
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Study streak tracking</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Completion statistics</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Progress visualizations</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Customization */}
+            <Card className="bg-gray-950 border-gray-800 hover:border-pink-500/50 transition-colors">
+              <CardHeader>
+                <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-4">
+                  <Target className="w-6 h-6 text-pink-400" />
+                </div>
+                <CardTitle className="text-white">Full Customization</CardTitle>
+                <CardDescription>
+                  Personalize your StudyFlow experience with extensive customization options.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-400">
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Custom themes & colors</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Profile personalization</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span>Layout preferences</span>
+                  </li>
+                </ul>
+              </CardContent>
             </Card>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-primary-500/10 to-purple-500/10">
-        <div className="container mx-auto px-6 text-center">
-          <h3 className="text-4xl font-bold mb-6">Ready to Transform Your Studies?</h3>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join thousands of students who are already using StudyFlow to achieve their academic goals.
-          </p>
-          <Button 
-            size="lg" 
-            className="bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white px-12 py-4 text-xl font-semibold"
-            onClick={() => window.location.href = '/api/login'}
-            data-testid="button-start-free-trial"
-          >
-            Start Your Free Trial
-          </Button>
-          <p className="text-sm text-gray-400 mt-4">No credit card required • 7-day free trial</p>
-        </div>
-      </section>
+      <div className="container mx-auto px-4 py-16">
+        <Card className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-purple-500/20 max-w-4xl mx-auto">
+          <CardContent className="text-center space-y-6 py-12">
+            <h3 className="text-3xl font-bold">Ready to Transform Your Study Experience?</h3>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Join thousands of students who have already revolutionized their academic journey with StudyFlow.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/signup">
+                <Button 
+                  data-testid="button-start-free"
+                  size="lg" 
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-lg px-8 py-6"
+                >
+                  Start Free Today
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/signin">
+                <Button 
+                  data-testid="button-sign-in-footer"
+                  variant="outline" 
+                  size="lg" 
+                  className="border-gray-700 text-white hover:bg-gray-800 text-lg px-8 py-6"
+                >
+                  Already have an account?
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Footer */}
-      <footer className="py-12 bg-dark-secondary border-t border-gray-700">
-        <div className="container mx-auto px-6 text-center">
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-purple-500 rounded-lg flex items-center justify-center">
-              <GraduationCap className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-primary-500 to-purple-500 bg-clip-text text-transparent">
-              StudyFlow
-            </span>
-          </div>
-          <p className="text-gray-400">
-            © 2024 StudyFlow. All rights reserved. Empowering students worldwide.
-          </p>
+      <footer className="border-t border-gray-800 py-8">
+        <div className="container mx-auto px-4 text-center text-gray-500">
+          <p>&copy; 2024 StudyFlow. Empowering student success through intelligent productivity.</p>
         </div>
       </footer>
     </div>

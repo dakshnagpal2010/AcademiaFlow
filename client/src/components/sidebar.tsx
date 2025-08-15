@@ -20,7 +20,7 @@ import PremiumUpgradeModal from "./premium-upgrade-modal";
 
 export default function Sidebar() {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user, signOut, isSigningOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -160,10 +160,11 @@ export default function Sidebar() {
             <Button
               variant="ghost"
               className="w-full text-gray-400 hover:text-white hover:bg-dark-tertiary"
-              onClick={() => window.location.href = '/api/logout'}
+              onClick={signOut}
+              disabled={isSigningOut}
               data-testid="button-logout"
             >
-              Sign Out
+              {isSigningOut ? "Signing out..." : "Sign Out"}
             </Button>
           </div>
         </div>
