@@ -53,7 +53,7 @@ function Router() {
       <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white">Loading StudyFlow...</p>
+          <p className="text-white">Loading AcademiaFlow...</p>
         </div>
       </div>
     );

@@ -29,14 +29,11 @@ export default function SignUpPage() {
 
   const signUpMutation = useMutation({
     mutationFn: async (data: SignUp) => {
-      return await apiRequest("/api/auth/signup", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("POST", "/api/auth/signup", data);
     },
     onSuccess: () => {
       toast({
-        title: "Welcome to StudyFlow!",
+        title: "Welcome to AcademiaFlow!",
         description: "Your account has been created successfully.",
       });
       setLocation("/");
@@ -64,7 +61,7 @@ export default function SignUpPage() {
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              StudyFlow
+              AcademiaFlow
             </h1>
           </div>
           <div className="space-y-2">
@@ -102,7 +99,7 @@ export default function SignUpPage() {
           <CardHeader>
             <CardTitle className="text-white">Sign Up</CardTitle>
             <CardDescription>
-              Create your StudyFlow account to get started
+              Create your AcademiaFlow account to get started
             </CardDescription>
           </CardHeader>
           <Form {...form}>

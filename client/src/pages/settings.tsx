@@ -493,7 +493,7 @@ export default function Settings() {
                   <Crown className={`h-6 w-6 ${user?.isPremium ? "text-purple-400" : "text-gray-500"}`} />
                   <div>
                     <p className="font-medium text-white">
-                      {user?.isPremium ? "StudyFlow Pro" : "StudyFlow Free"}
+                      {user?.isPremium ? "AcademiaFlow Pro" : "AcademiaFlow Free"}
                     </p>
                     <p className="text-sm text-gray-400">
                       {user?.isPremium 

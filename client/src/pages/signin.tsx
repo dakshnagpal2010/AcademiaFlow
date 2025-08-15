@@ -26,15 +26,12 @@ export default function SignInPage() {
 
   const signInMutation = useMutation({
     mutationFn: async (data: SignIn) => {
-      return await apiRequest("/api/auth/signin", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("POST", "/api/auth/signin", data);
     },
     onSuccess: () => {
       toast({
         title: "Welcome back!",
-        description: "You've successfully signed in to StudyFlow.",
+        description: "You've successfully signed in to AcademiaFlow.",
       });
       setLocation("/");
     },
@@ -61,13 +58,13 @@ export default function SignInPage() {
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              StudyFlow
+              AcademiaFlow
             </h1>
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold">Welcome back</h2>
             <p className="text-gray-400">
-              Continue your academic journey with StudyFlow
+              Continue your academic journey with AcademiaFlow
             </p>
           </div>
         </div>
@@ -197,8 +194,8 @@ export default function SignInPage() {
             <div className="text-center space-y-2">
               <h3 className="text-sm font-medium text-gray-300">Demo Account</h3>
               <p className="text-xs text-gray-500">
-                Try StudyFlow with demo credentials:<br />
-                Email: demo@studyflow.com<br />
+                Try AcademiaFlow with demo credentials:<br />
+                Email: demo@academiaflow.com<br />
                 Password: demo123
               </p>
               <Button
@@ -207,7 +204,7 @@ export default function SignInPage() {
                 size="sm"
                 className="mt-2 border-gray-700 text-gray-300 hover:bg-gray-800"
                 onClick={() => {
-                  form.setValue("email", "demo@studyflow.com");
+                  form.setValue("email", "demo@academiaflow.com");
                   form.setValue("password", "demo123");
                 }}
               >
@@ -219,7 +216,7 @@ export default function SignInPage() {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-500">
-          Secure sign in powered by StudyFlow authentication
+          Secure sign in powered by AcademiaFlow authentication
         </div>
       </div>
     </div>
