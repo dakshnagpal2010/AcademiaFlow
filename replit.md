@@ -1,6 +1,6 @@
 # Overview
 
-StudyFlow is a modern student productivity platform built as a full-stack web application. The system provides intelligent homework tracking, class management, calendar integration, and personalized study insights to help students excel in their academic journey. The application features a React-based frontend with a Node.js/Express backend, utilizing PostgreSQL for data persistence and implementing Replit's OAuth authentication system.
+AcademiaFlow is a modern student productivity platform built as a full-stack web application. The system provides intelligent homework tracking, class management, calendar integration, and personalized study insights to help students excel in their academic journey. The application features a React-based frontend with a Node.js/Express backend, utilizing PostgreSQL for data persistence and implementing Replit's OAuth authentication system.
 
 # User Preferences
 

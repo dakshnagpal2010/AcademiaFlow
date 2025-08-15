@@ -76,7 +76,7 @@ export default function PremiumUpgradeModal({ open, onOpenChange }: PremiumUpgra
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Crown className="h-6 w-6 text-yellow-400" />
-            <span>Upgrade to StudyFlow Pro</span>
+            <span>Upgrade to AcademiaFlow Pro</span>
           </DialogTitle>
           <DialogDescription className="text-gray-400">
             Unlock AI-powered features and advanced analytics to supercharge your academic success.
@@ -174,7 +174,7 @@ export default function PremiumUpgradeModal({ open, onOpenChange }: PremiumUpgra
           {/* CTA Section */}
           <div className="text-center space-y-4 p-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20">
             <h3 className="text-xl font-semibold text-white">Ready to supercharge your studies?</h3>
-            <p className="text-gray-400">Join thousands of students who are already excelling with StudyFlow Pro.</p>
+            <p className="text-gray-400">Join thousands of students who are already excelling with AcademiaFlow Pro.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
                 data-testid="button-upgrade-now"

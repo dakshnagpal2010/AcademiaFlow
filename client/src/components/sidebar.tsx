@@ -62,7 +62,7 @@ export default function Sidebar() {
               <GraduationCap className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-primary-500 to-purple-500 bg-clip-text text-transparent">
-              StudyFlow
+              AcademiaFlow
             </h1>
           </div>
 

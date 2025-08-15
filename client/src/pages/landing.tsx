@@ -28,7 +28,7 @@ export default function LandingPage() {
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              StudyFlow
+              AcademiaFlow
             </h1>
           </div>
 
@@ -70,25 +70,6 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Social Proof */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-8 border-t border-gray-800">
-            <div className="flex items-center space-x-2">
-              <div className="flex -space-x-2">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 border-2 border-black flex items-center justify-center text-xs font-semibold">
-                    {String.fromCharCode(64 + i)}
-                  </div>
-                ))}
-              </div>
-              <span className="text-gray-400">Join 10,000+ students</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              {[1,2,3,4,5].map(i => (
-                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              ))}
-              <span className="text-gray-400 ml-2">4.9/5 rating</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -162,7 +143,7 @@ export default function LandingPage() {
             </Card>
 
             {/* Calendar Integration */}
-            <Card className="bg-gray-950 border-gray-800 hover:border-green-500/50 transition-colors">
+            <Card className="bg-gray-950 border-gray-800 hover:border-green-500/50 transition-colors md:col-span-2 lg:col-span-1">
               <CardHeader>
                 <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
                   <Calendar className="w-6 h-6 text-green-400" />
@@ -261,7 +242,7 @@ export default function LandingPage() {
                 </div>
                 <CardTitle className="text-white">Full Customization</CardTitle>
                 <CardDescription>
-                  Personalize your StudyFlow experience with extensive customization options.
+                  Personalize your AcademiaFlow experience with extensive customization options.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -291,7 +272,7 @@ export default function LandingPage() {
           <CardContent className="text-center space-y-6 py-12">
             <h3 className="text-3xl font-bold">Ready to Transform Your Study Experience?</h3>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Join thousands of students who have already revolutionized their academic journey with StudyFlow.
+              Join thousands of students who have already revolutionized their academic journey with AcademiaFlow.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/signup">
@@ -322,7 +303,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-gray-800 py-8">
         <div className="container mx-auto px-4 text-center text-gray-500">
-          <p>&copy; 2024 StudyFlow. Empowering student success through intelligent productivity.</p>
+          <p>&copy; 2024 AcademiaFlow. Empowering student success through intelligent productivity.</p>
         </div>
       </footer>
     </div>

@@ -47,10 +47,7 @@ export default function ProfileCustomizationModal({ open, onOpenChange }: Profil
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: UpdateUser) => {
-      return await apiRequest("/api/user/profile", {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("PATCH", "/api/user/profile", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -79,7 +76,7 @@ export default function ProfileCustomizationModal({ open, onOpenChange }: Profil
         <DialogHeader>
           <DialogTitle>Customize Profile</DialogTitle>
           <DialogDescription className="text-gray-400">
-            Personalize your StudyFlow experience with custom settings.
+            Personalize your AcademiaFlow experience with custom settings.
           </DialogDescription>
         </DialogHeader>
 
