@@ -61,7 +61,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-dark-secondary glass-effect border-r border-gray-700 z-40 transition-all duration-300 overflow-y-auto`}>
+      <div className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-dark-secondary glass-effect border-r border-gray-700 z-40 transition-all duration-300 overflow-y-auto overflow-x-hidden`}>
         <div className={`${isCollapsed ? 'p-3' : 'p-6'}`}>
           {/* Toggle Button */}
           <Button

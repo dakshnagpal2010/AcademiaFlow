@@ -73,15 +73,15 @@ export default function Settings() {
   useEffect(() => {
     if (user) {
       setProfileData({
-        displayName: user.displayName || "",
-        bio: user.bio || "",
-        academicYear: user.academicYear || "",
-        major: user.major || "",
+        displayName: (user as any).displayName || "",
+        bio: (user as any).bio || "",
+        academicYear: (user as any).academicYear || "",
+        major: (user as any).major || "",
       });
       setPreferences({
         theme: theme === "dark" ? "dark" : "light",
-        animationsEnabled: user.animationsEnabled ?? true,
-        compactMode: user.compactMode ?? false,
+        animationsEnabled: (user as any).animationsEnabled ?? true,
+        compactMode: (user as any).compactMode ?? false,
         notifications: {
           assignments: true,
           deadlines: true,
@@ -191,7 +191,7 @@ export default function Settings() {
             <h1 className="text-3xl font-bold" data-testid="text-settings-title">Settings</h1>
             <p className="text-gray-400 mt-1">Manage your account and preferences</p>
           </div>
-          {!user?.isPremium && (
+          {!(user as any)?.isPremium && (
             <Button
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white premium-glow"
               onClick={() => setShowUpgradeModal(true)}
@@ -224,7 +224,7 @@ export default function Settings() {
                 <Label className="text-white mb-2 block">Profile Picture</Label>
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={user?.profileImageUrl} alt="Profile" />
+                    <AvatarImage src={(user as any)?.profileImageUrl} alt="Profile" />
                     <AvatarFallback className="bg-primary-500 text-white text-xl">
                       {getInitials(user)}
                     </AvatarFallback>
@@ -510,20 +510,20 @@ export default function Settings() {
               {/* Premium Status */}
               <div className="flex items-center justify-between p-4 bg-dark-tertiary rounded-lg border border-gray-600">
                 <div className="flex items-center space-x-3">
-                  <Crown className={`h-6 w-6 ${user?.isPremium ? "text-purple-400" : "text-gray-500"}`} />
+                  <Crown className={`h-6 w-6 ${(user as any)?.isPremium ? "text-purple-400" : "text-gray-500"}`} />
                   <div>
                     <p className="font-medium text-white">
-                      {user?.isPremium ? "AcademiaFlow Pro" : "AcademiaFlow Free"}
+                      {(user as any)?.isPremium ? "AcademiaFlow Pro" : "AcademiaFlow Free"}
                     </p>
                     <p className="text-sm text-gray-400">
-                      {user?.isPremium 
+                      {(user as any)?.isPremium 
                         ? "Enjoy all premium features including AI assistance"
                         : "Upgrade to unlock AI features and advanced tools"
                       }
                     </p>
                   </div>
                 </div>
-                {user?.isPremium ? (
+                {(user as any)?.isPremium ? (
                   <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                     Active
                   </Badge>
