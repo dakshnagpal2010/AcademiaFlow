@@ -135,7 +135,7 @@ export default function AddHomeworkModal({
               </SelectTrigger>
               <SelectContent className="bg-dark-tertiary border-gray-600">
                 <SelectItem value="">No class</SelectItem>
-                {classes?.map((classItem: any) => (
+                {Array.isArray(classes) && classes.map((classItem: any) => (
                   <SelectItem key={classItem.id} value={classItem.id}>
                     {classItem.name}
                   </SelectItem>

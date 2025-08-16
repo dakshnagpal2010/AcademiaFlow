@@ -16,11 +16,14 @@ import {
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, parseISO, getDay } from "date-fns";
 import AddHomeworkModal from "@/components/add-homework-modal";
+import CalendarNoteModal from "@/components/calendar-note-modal";
 
 export default function Calendar() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // Redirect to login if not authenticated
@@ -202,7 +205,7 @@ export default function Calendar() {
                       return (
                         <div
                           key={index}
-                          className={`h-24 p-1 border border-gray-600 rounded-lg transition-colors ${
+                          className={`h-24 p-1 border border-gray-600 rounded-lg transition-colors cursor-pointer ${
                             isCurrentMonth 
                               ? "bg-dark-tertiary hover:bg-dark-secondary" 
                               : "bg-dark-primary opacity-50"
@@ -210,6 +213,12 @@ export default function Calendar() {
                             isTodayDate ? "ring-2 ring-primary-500" : ""
                           }`}
                           data-testid={`calendar-day-${format(date, 'yyyy-MM-dd')}`}
+                          onClick={() => {
+                            if (isCurrentMonth) {
+                              setSelectedDate(date);
+                              setShowNoteModal(true);
+                            }
+                          }}
                         >
                           <div className={`text-sm font-medium mb-1 ${
                             isTodayDate 
@@ -382,6 +391,13 @@ export default function Calendar() {
 
       {/* Add Assignment Modal */}
       <AddHomeworkModal open={showAddModal} onOpenChange={setShowAddModal} />
+      
+      {/* Calendar Note Modal */}
+      <CalendarNoteModal 
+        open={showNoteModal} 
+        onOpenChange={setShowNoteModal}
+        selectedDate={selectedDate}
+      />
     </div>
   );
 }

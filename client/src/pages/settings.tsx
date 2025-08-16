@@ -61,6 +61,14 @@ export default function Settings() {
     },
   });
 
+  // Sync theme preference with theme provider
+  useEffect(() => {
+    setPreferences(prev => ({
+      ...prev,
+      theme: theme === "dark" ? "dark" : "light"
+    }));
+  }, [theme]);
+
   // Initialize form data when user data loads
   useEffect(() => {
     if (user) {
@@ -71,7 +79,7 @@ export default function Settings() {
         major: user.major || "",
       });
       setPreferences({
-        theme: user.theme || "default",
+        theme: theme === "dark" ? "dark" : "light",
         animationsEnabled: user.animationsEnabled ?? true,
         compactMode: user.compactMode ?? false,
         notifications: {
@@ -318,23 +326,35 @@ export default function Settings() {
             <CardContent className="space-y-6">
               {/* Theme Selection */}
               <div>
-                <Label className="text-white mb-3 block">Color Theme</Label>
-                <div className="grid grid-cols-3 gap-3">
-                  {themeOptions.map((themeOption) => (
-                    <button
-                      key={themeOption.value}
-                      onClick={() => setPreferences({ ...preferences, theme: themeOption.value })}
-                      className={`p-4 rounded-lg border-2 transition-colors ${
-                        preferences.theme === themeOption.value
-                          ? "border-primary-500 bg-primary-500/20"
-                          : "border-gray-600 hover:border-gray-500"
-                      }`}
-                      data-testid={`button-theme-${themeOption.value}`}
-                    >
-                      <div className={`w-full h-6 bg-gradient-to-r ${themeOption.gradient} rounded mb-2`}></div>
-                      <p className="text-sm text-gray-300">{themeOption.name}</p>
-                    </button>
-                  ))}
+                <Label className="text-white mb-3 block">App Theme</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    className={`p-4 rounded-lg border transition-all ${
+                      theme === "dark"
+                        ? "border-primary-500 bg-primary-500/20"
+                        : "border-gray-600 bg-dark-tertiary hover:border-gray-500"
+                    }`}
+                    onClick={() => setTheme("dark")}
+                    data-testid="theme-dark"
+                  >
+                    <div className="w-full h-8 rounded bg-gradient-to-r from-gray-800 to-gray-900 mb-2"></div>
+                    <p className="text-sm text-white font-medium">Dark Theme</p>
+                    <p className="text-xs text-gray-400">Default dark interface</p>
+                  </button>
+                  
+                  <button
+                    className={`p-4 rounded-lg border transition-all ${
+                      theme === "light"
+                        ? "border-primary-500 bg-primary-500/20"
+                        : "border-gray-600 bg-dark-tertiary hover:border-gray-500"
+                    }`}
+                    onClick={() => setTheme("light")}
+                    data-testid="theme-light"
+                  >
+                    <div className="w-full h-8 rounded bg-gradient-to-r from-white to-gray-100 mb-2"></div>
+                    <p className="text-sm text-white font-medium">Light Theme</p>
+                    <p className="text-xs text-gray-400">Light background, dark text</p>
+                  </button>
                 </div>
               </div>
 

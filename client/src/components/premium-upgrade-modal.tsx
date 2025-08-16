@@ -72,7 +72,7 @@ export default function PremiumUpgradeModal({ open, onOpenChange }: PremiumUpgra
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl bg-gray-950 border-gray-800 text-white">
+      <DialogContent className="sm:max-w-2xl bg-gray-950 border-gray-800 text-white max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Crown className="h-6 w-6 text-yellow-400" />
