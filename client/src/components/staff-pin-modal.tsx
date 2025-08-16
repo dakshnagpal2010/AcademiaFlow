@@ -99,13 +99,28 @@ export default function StaffPinModal({ open, onOpenChange }: StaffPinModalProps
           </form>
         ) : (
           <div className="text-center space-y-4 py-6">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+            <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto">
+              <Crown className="h-8 w-8 text-white" />
+            </div>
             <div>
               <h3 className="text-lg font-semibold text-white mb-2">
-                Premium Features Unlocked!
+                Premium Access Granted
               </h3>
-              <p className="text-gray-400">
-                You have unlocked all premium features. They will be available soon, sorry for the inconvenience.
+              <p className="text-gray-300 text-sm leading-relaxed">
+                We sincerely apologize, but the premium AI features are currently unavailable as they are still in active development. 
+                We appreciate your patience and understanding, and will notify you immediately once these advanced features are ready for use.
+              </p>
+            </div>
+            <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-lg p-4 mt-4">
+              <h4 className="font-medium text-orange-300 mb-2">Features in Development:</h4>
+              <ul className="text-sm text-gray-300 space-y-1 text-left">
+                <li>• AI-powered study assistant</li>
+                <li>• Advanced progress analytics</li>
+                <li>• Smart study recommendations</li>
+                <li>• Automated scheduling optimization</li>
+              </ul>
+              <p className="text-xs text-gray-400 mt-3">
+                Thank you for your understanding. All current features remain fully functional.
               </p>
             </div>
           </div>

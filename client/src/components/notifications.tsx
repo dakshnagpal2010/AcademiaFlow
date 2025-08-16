@@ -32,7 +32,7 @@ export default function NotificationsPopover() {
   const [isOpen, setIsOpen] = useState(false);
 
   // In a real app, this would fetch from an API
-  const { data: notifications = [], isLoading } = useQuery({
+  const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ["/api/notifications"],
     enabled: isAuthenticated,
     retry: false,
@@ -85,7 +85,7 @@ export default function NotificationsPopover() {
     },
   ];
 
-  const displayNotifications = notifications.length > 0 ? notifications : mockNotifications;
+  const displayNotifications: Notification[] = Array.isArray(notifications) && notifications.length > 0 ? notifications : mockNotifications;
   const unreadCount = displayNotifications.filter((n: Notification) => !n.read).length;
 
   const getNotificationIcon = (type: string) => {

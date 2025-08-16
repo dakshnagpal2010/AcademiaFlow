@@ -40,7 +40,7 @@ export default function AddHomeworkModal({
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    classId: "",
+    classId: "none",
     priority: "medium",
     estimatedHours: "",
     dueDate: undefined as Date | undefined,
@@ -56,6 +56,7 @@ export default function AddHomeworkModal({
     mutationFn: async (data: any) => {
       await apiRequest("POST", "/api/assignments", {
         ...data,
+        classId: data.classId === "none" ? null : data.classId,
         estimatedHours: data.estimatedHours ? parseInt(data.estimatedHours) : undefined,
         dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
       });
@@ -72,7 +73,7 @@ export default function AddHomeworkModal({
       setFormData({
         title: "",
         description: "",
-        classId: "",
+        classId: "none",
         priority: "medium",
         estimatedHours: "",
         dueDate: undefined,
@@ -134,7 +135,7 @@ export default function AddHomeworkModal({
                 <SelectValue placeholder="Select a class (optional)" />
               </SelectTrigger>
               <SelectContent className="bg-dark-tertiary border-gray-600">
-                <SelectItem value="">No class</SelectItem>
+                <SelectItem value="none">No class</SelectItem>
                 {Array.isArray(classes) && classes.map((classItem: any) => (
                   <SelectItem key={classItem.id} value={classItem.id}>
                     {classItem.name}
