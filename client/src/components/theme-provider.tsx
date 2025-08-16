@@ -1,38 +1,76 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "light" | "dark";
+type Theme = "dark" | "light";
 
-type ThemeProviderContextType = {
+type ThemeProviderProps = {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+  storageKey?: string;
+};
+
+type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
 };
 
-const ThemeProviderContext = createContext<ThemeProviderContextType | undefined>(undefined);
+const initialState: ThemeProviderState = {
+  theme: "dark",
+  setTheme: () => null,
+};
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
+const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-  }, []);
+export function ThemeProvider({
+  children,
+  defaultTheme = "dark",
+  storageKey = "academiaflow-theme",
+  ...props
+}: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+  );
 
   useEffect(() => {
     const root = window.document.documentElement;
+
+    // Remove any existing theme classes
     root.classList.remove("light", "dark");
+    
+    // Apply the current theme
     root.classList.add(theme);
-    localStorage.setItem("theme", theme);
+    
+    // For light theme, apply specific light mode styles
+    if (theme === "light") {
+      // Set CSS variables for light theme - simple white background, black text
+      root.style.setProperty('--background', '255 255 255');
+      root.style.setProperty('--foreground', '0 0 0');
+      root.style.setProperty('--card', '255 255 255');
+      root.style.setProperty('--card-foreground', '0 0 0');
+      root.style.setProperty('--border', '229 231 235'); // light gray
+      root.style.setProperty('--muted', '249 250 251');
+      root.style.setProperty('--muted-foreground', '107 114 128');
+    } else {
+      // Reset to default dark theme
+      root.style.removeProperty('--background');
+      root.style.removeProperty('--foreground');
+      root.style.removeProperty('--card');
+      root.style.removeProperty('--card-foreground');
+      root.style.removeProperty('--border');
+      root.style.removeProperty('--muted');
+      root.style.removeProperty('--muted-foreground');
+    }
   }, [theme]);
 
   const value = {
     theme,
-    setTheme,
+    setTheme: (theme: Theme) => {
+      localStorage.setItem(storageKey, theme);
+      setTheme(theme);
+    },
   };
 
   return (
-    <ThemeProviderContext.Provider value={value}>
+    <ThemeProviderContext.Provider {...props} value={value}>
       {children}
     </ThemeProviderContext.Provider>
   );

@@ -78,6 +78,13 @@ export default function Dashboard() {
     retry: false,
   });
 
+  // All assignments query for progress calculation
+  const { data: allAssignments, isLoading: allAssignmentsLoading } = useQuery({
+    queryKey: ["/api/assignments"],
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
   const formatDueDate = (dueDate: string) => {
     const date = new Date(dueDate);
     if (isToday(date)) return "Due Today";
@@ -108,6 +115,17 @@ export default function Dashboard() {
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
     return "Good evening";
+  };
+
+  // Calculate real progress for each class
+  const calculateClassProgress = (classId: string) => {
+    if (!allAssignments || !Array.isArray(allAssignments)) return 0;
+    
+    const classAssignments = allAssignments.filter((assignment: any) => assignment.classId === classId);
+    if (classAssignments.length === 0) return 0;
+    
+    const completedAssignments = classAssignments.filter((assignment: any) => assignment.status === "completed");
+    return Math.round((completedAssignments.length / classAssignments.length) * 100);
   };
 
   if (authLoading) {
@@ -377,20 +395,23 @@ export default function Dashboard() {
                     </div>
                   ))
                 ) : classes && classes.length > 0 ? (
-                  classes.slice(0, 3).map((classItem: any, index: number) => (
-                    <div key={classItem.id}>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-white">{classItem.name}</span>
-                        <span className="text-green-400">
-                          {Math.floor(Math.random() * 30) + 70}%
-                        </span>
+                  classes.slice(0, 3).map((classItem: any, index: number) => {
+                    const progress = calculateClassProgress(classItem.id);
+                    return (
+                      <div key={classItem.id}>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-white">{classItem.name}</span>
+                          <span className="text-green-400">
+                            {progress}%
+                          </span>
+                        </div>
+                        <Progress 
+                          value={progress} 
+                          className="h-2"
+                        />
                       </div>
-                      <Progress 
-                        value={Math.floor(Math.random() * 30) + 70} 
-                        className="h-2"
-                      />
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="text-center py-4 text-gray-400">
                     <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
