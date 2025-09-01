@@ -162,7 +162,7 @@ export default function Sidebar() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full bg-gradient-to-r from-primary-500 to-purple-500 text-white border-none hover:from-primary-600 hover:to-purple-600"
+                  className="w-full bg-gradient-to-r from-primary-500 to-purple-500 text-white border-none hover:from-primary-600 hover:to-purple-600 pl-[50px] pr-[50px]"
                   onClick={() => setShowProfileModal(true)}
                   data-testid="button-customize-profile"
                 >
