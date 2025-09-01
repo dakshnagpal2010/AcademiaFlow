@@ -34,6 +34,7 @@ export async function setupAuth(app: Express) {
 
   // Sign up route
   app.post("/api/auth/signup", async (req, res) => {
+    console.log("Signup body received:", req.body);
     try {
       const { email, password, firstName, lastName } = signUpSchema.parse(req.body);
       
