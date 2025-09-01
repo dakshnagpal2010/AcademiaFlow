@@ -58,7 +58,7 @@ export default function AddHomeworkModal({
         ...data,
         classId: data.classId === "none" ? null : data.classId,
         estimatedHours: data.estimatedHours ? parseInt(data.estimatedHours) : undefined,
-        dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
+        dueDate: data.dueDate || undefined,
       });
     },
     onSuccess: () => {
