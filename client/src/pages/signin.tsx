@@ -33,8 +33,10 @@ export default function SignInPage() {
         title: "Welcome back!",
         description: "You've successfully signed in to AcademiaFlow.",
       });
-      // Force refresh of auth state and redirect to dashboard
-      window.location.href = "/";
+      // Wait 1 second then redirect to dashboard
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
     },
     onError: (error: Error) => {
       toast({

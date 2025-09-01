@@ -30,6 +30,7 @@ export default function Sidebar() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showStaffModal, setShowStaffModal] = useState(false);
+  const [isStaffMode, setIsStaffMode] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navigation = [
@@ -61,13 +62,13 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-16' : 'w-64'} bg-dark-secondary glass-effect border-r border-gray-700 z-40 transition-all duration-300 overflow-y-auto overflow-x-hidden`}>
-        <div className={`${isCollapsed ? 'p-3' : 'p-6'}`}>
+      <div className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-16' : 'w-72'} bg-dark-secondary glass-effect border-r border-gray-700 z-40 transition-all duration-300 overflow-y-auto overflow-x-hidden`}>
+        <div className={`${isCollapsed ? 'p-3' : 'p-8'}`}>
           {/* Toggle Button */}
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-2 text-gray-400 hover:text-white hover:bg-dark-tertiary z-50"
+            className="absolute top-4 right-2 text-gray-400 hover:text-white hover:bg-dark-tertiary z-50 pl-[50px] pr-[50px]"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
@@ -151,7 +152,7 @@ export default function Sidebar() {
                     {user?.displayName || `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Student"}
                   </h3>
                   <p className="text-sm text-gray-400 truncate" data-testid="text-user-year">
-                    {user?.academicYear || "Student"}
+                    {user?.schoolName || user?.academicYear || "Student"}
                   </p>
                 </div>
               )}
@@ -185,12 +186,25 @@ export default function Sidebar() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="bg-yellow-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30 text-xs"
-                    onClick={() => setShowStaffModal(true)}
+                    className={isStaffMode 
+                      ? "bg-red-500/20 border-red-500/50 text-red-400 hover:bg-red-500/30 text-xs" 
+                      : "bg-yellow-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30 text-xs"
+                    }
+                    onClick={() => {
+                      if (isStaffMode) {
+                        setIsStaffMode(false);
+                        toast({
+                          title: "Staff Mode Disabled",
+                          description: "You have left staff mode.",
+                        });
+                      } else {
+                        setShowStaffModal(true);
+                      }
+                    }}
                     data-testid="button-staff-pin"
-                    title="Staff Access"
+                    title={isStaffMode ? "Exit Staff Mode" : "Staff Access"}
                   >
-                    <Shield className="h-3 w-3" />
+                    {isStaffMode ? <X className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
                   </Button>
                 </div>
               </div>
@@ -226,6 +240,10 @@ export default function Sidebar() {
       <StaffPinModal 
         open={showStaffModal} 
         onOpenChange={setShowStaffModal}
+        onStaffModeActivated={() => {
+          setIsStaffMode(true);
+          setShowStaffModal(false);
+        }}
       />
     </>
   );

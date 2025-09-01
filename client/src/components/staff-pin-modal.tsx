@@ -10,14 +10,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, CheckCircle } from "lucide-react";
+import { Shield, CheckCircle, Crown } from "lucide-react";
 
 interface StaffPinModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStaffModeActivated?: () => void;
 }
 
-export default function StaffPinModal({ open, onOpenChange }: StaffPinModalProps) {
+export default function StaffPinModal({ open, onOpenChange, onStaffModeActivated }: StaffPinModalProps) {
   const { toast } = useToast();
   const [pin, setPin] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
@@ -31,6 +32,9 @@ export default function StaffPinModal({ open, onOpenChange }: StaffPinModalProps
         setShowSuccess(false);
         onOpenChange(false);
         setPin("");
+        if (onStaffModeActivated) {
+          onStaffModeActivated();
+        }
       }, 3000);
     } else {
       toast({
@@ -104,11 +108,10 @@ export default function StaffPinModal({ open, onOpenChange }: StaffPinModalProps
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white mb-2">
-                Premium Access Granted
+                You have entered staff mode
               </h3>
               <p className="text-gray-300 text-sm leading-relaxed">
-                We sincerely apologize, but the premium AI features are currently unavailable as they are still in active development. 
-                We appreciate your patience and understanding, and will notify you immediately once these advanced features are ready for use.
+                AI mode and other premium features have still not been released.
               </p>
             </div>
             <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-lg p-4 mt-4">

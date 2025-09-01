@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -34,6 +35,30 @@ export default function Dashboard() {
   const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [showAddHomeworkModal, setShowAddHomeworkModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+
+  // Inspirational quotes from famous people
+  const quotes = [
+    { quote: "Genius is one percent inspiration, ninety-nine percent perspiration.", author: "Thomas Edison" },
+    { quote: "Imagination is more important than knowledge.", author: "Albert Einstein" },
+    { quote: "I've failed over and over and over again in my life. And that is why I succeed.", author: "Michael Jordan" },
+    { quote: "You have to believe in the long term plan you have but you need the short term goals to motivate and inspire you.", author: "Roger Federer" },
+    { quote: "Never let the fear of striking out keep you from playing the game.", author: "Babe Ruth" },
+    { quote: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+    { quote: "Innovation distinguishes between a leader and a follower.", author: "Steve Jobs" },
+    { quote: "Life is what happens to you while you're busy making other plans.", author: "John Lennon" },
+    { quote: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+    { quote: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+    { quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+    { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+    { quote: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+    { quote: "Champions aren't made in the gyms. Champions are made from something deep inside them - a desire, a dream, a vision.", author: "Muhammad Ali" },
+    { quote: "The difference between ordinary and extraordinary is that little extra.", author: "Jimmy Johnson" }
+  ];
+
+  const nextQuote = () => {
+    setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length);
+  };
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -180,47 +205,72 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="p-6 space-y-6">
+        {/* Inspirational Quote Section */}
+        <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <blockquote className="text-lg font-medium text-white mb-2">
+                "{quotes[currentQuoteIndex].quote}"
+              </blockquote>
+              <p className="text-gray-400 text-sm">— {quotes[currentQuoteIndex].author}</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={nextQuote}
+              className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 ml-4"
+              data-testid="button-next-quote"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-dark-secondary border-gray-700 hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Total Classes</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold mt-1" data-testid="stat-total-classes">
-                      {stats?.totalClasses || 0}
-                    </p>
-                  )}
+          <Link href="/classes">
+            <Card className="bg-dark-secondary border-gray-700 hover-lift cursor-pointer hover:bg-dark-tertiary transition-colors">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-sm">Total Classes</p>
+                    {statsLoading ? (
+                      <Skeleton className="h-8 w-16 mt-1" />
+                    ) : (
+                      <p className="text-2xl font-bold mt-1" data-testid="stat-total-classes">
+                        {stats?.totalClasses || 0}
+                      </p>
+                    )}
+                  </div>
+                  <div className="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center">
+                    <BookOpen className="h-6 w-6 text-primary-500" />
+                  </div>
                 </div>
-                <div className="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-primary-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="bg-dark-secondary border-gray-700 hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Pending Tasks</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-16 mt-1" />
-                  ) : (
-                    <p className="text-2xl font-bold mt-1 text-orange-400" data-testid="stat-pending-tasks">
-                      {stats?.pendingTasks || 0}
-                    </p>
-                  )}
+          <Link href="/homework">
+            <Card className="bg-dark-secondary border-gray-700 hover-lift cursor-pointer hover:bg-dark-tertiary transition-colors">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-sm">Pending Tasks</p>
+                    {statsLoading ? (
+                      <Skeleton className="h-8 w-16 mt-1" />
+                    ) : (
+                      <p className="text-2xl font-bold mt-1 text-orange-400" data-testid="stat-pending-tasks">
+                        {stats?.pendingTasks || 0}
+                      </p>
+                    )}
+                  </div>
+                  <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-orange-500" />
+                  </div>
                 </div>
-                <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-orange-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card className="bg-dark-secondary border-gray-700 hover-lift">
             <CardContent className="p-6">
@@ -246,7 +296,7 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm">Study Streak</p>
+                  <p className="text-gray-400 text-sm">Next Event</p>
                   {statsLoading ? (
                     <Skeleton className="h-8 w-20 mt-1" />
                   ) : (

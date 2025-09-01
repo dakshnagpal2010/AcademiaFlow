@@ -36,7 +36,10 @@ export default function SignUpPage() {
         title: "Welcome to AcademiaFlow!",
         description: "Your account has been created successfully.",
       });
-      setLocation("/");
+      // Wait 1 second then redirect to dashboard
+      setTimeout(() => {
+        setLocation("/");
+      }, 1000);
     },
     onError: (error: Error) => {
       toast({

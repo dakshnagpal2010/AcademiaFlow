@@ -39,6 +39,7 @@ export default function ProfileCustomizationModal({ open, onOpenChange }: Profil
       bio: user?.bio || "",
       academicYear: user?.academicYear || "",
       major: user?.major || "",
+      schoolName: user?.schoolName || "",
       theme: user?.theme || "default",
       animationsEnabled: user?.animationsEnabled ?? true,
       compactMode: user?.compactMode ?? false,
@@ -197,6 +198,26 @@ export default function ProfileCustomizationModal({ open, onOpenChange }: Profil
                 )}
               />
             </div>
+
+            {/* School Name */}
+            <FormField
+              control={form.control}
+              name="schoolName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-300">School Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="input-school-name"
+                      placeholder="e.g., Harvard University, MIT, etc."
+                      {...field}
+                      className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Theme Preferences */}
             <div className="space-y-4">

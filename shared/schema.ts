@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   bio: text("bio"),
   academicYear: varchar("academic_year"),
   major: varchar("major"),
+  schoolName: varchar("school_name"),
   theme: varchar("theme").default("default"),
   animationsEnabled: boolean("animations_enabled").default(true),
   compactMode: boolean("compact_mode").default(false),
