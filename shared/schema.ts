@@ -165,7 +165,9 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
 // Update schemas
 export const updateUserSchema = insertUserSchema.partial();
 export const updateClassSchema = insertClassSchema.partial().omit({ userId: true });
-export const updateAssignmentSchema = insertAssignmentSchema.partial().omit({ userId: true });
+export const updateAssignmentSchema = insertAssignmentSchema.partial().omit({ userId: true }).extend({
+  estimatedHours: z.union([z.number(), z.string().transform((str) => Number(str))]).optional(),
+});
 
 // Types
 export type SignUp = z.infer<typeof signUpSchema>;
