@@ -89,7 +89,7 @@ export default function EditAssignmentModal({
       const updateData = {
         ...data,
         classId: data.classId === "none" ? null : data.classId,
-        estimatedHours: data.estimatedHours ? parseInt(String(data.estimatedHours)) : undefined,
+        estimatedHours: data.estimatedHours ? Number(data.estimatedHours) : undefined,
       };
 
       await apiRequest("PATCH", `/api/assignments/${assignmentId}`, updateData);
