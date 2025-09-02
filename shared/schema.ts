@@ -153,6 +153,8 @@ export const insertAssignmentSchema = createInsertSchema(assignments).omit({
   createdAt: true,
   updatedAt: true,
   completedAt: true,
+}).extend({
+  dueDate: z.union([z.date(), z.string().transform((str) => new Date(str))]).optional(),
 });
 
 export const insertActivitySchema = createInsertSchema(activities).omit({
