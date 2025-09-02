@@ -122,7 +122,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(assignments)
       .where(eq(assignments.userId, userId))
-      .orderBy(asc(assignments.dueDate));
+      .orderBy(desc(assignments.createdAt));
   }
 
   async getAssignmentsByClass(classId: string): Promise<Assignment[]> {
