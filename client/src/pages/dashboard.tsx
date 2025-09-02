@@ -1,9 +1,10 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,6 +33,7 @@ import { format, isToday, isTomorrow, isPast } from "date-fns";
 export default function Dashboard() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [showAddHomeworkModal, setShowAddHomeworkModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -59,6 +61,29 @@ export default function Dashboard() {
   const nextQuote = () => {
     setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length);
   };
+
+  // Complete assignment mutation
+  const completeAssignmentMutation = useMutation({
+    mutationFn: async (assignmentId: string) => {
+      await apiRequest("PATCH", `/api/assignments/${assignmentId}/complete`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assignments/upcoming"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      toast({
+        title: "Success",
+        description: "Assignment marked as completed!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to complete assignment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -354,6 +379,12 @@ export default function Dashboard() {
                     >
                       <Checkbox 
                         checked={assignment.status === "completed"}
+                        onCheckedChange={() => {
+                          if (assignment.status !== "completed") {
+                            completeAssignmentMutation.mutate(assignment.id);
+                          }
+                        }}
+                        disabled={assignment.status === "completed" || completeAssignmentMutation.isPending}
                         data-testid={`checkbox-assignment-${assignment.id}`}
                       />
                       <div className="flex-1">

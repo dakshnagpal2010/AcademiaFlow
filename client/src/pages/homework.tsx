@@ -31,6 +31,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import AddHomeworkModal from "@/components/add-homework-modal";
+import EditAssignmentModal from "@/components/edit-assignment-modal";
 import { format, isToday, isTomorrow, isPast, parseISO } from "date-fns";
 
 export default function Homework() {
@@ -38,6 +39,8 @@ export default function Homework() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingAssignmentId, setEditingAssignmentId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
@@ -407,6 +410,10 @@ export default function Homework() {
                               <DropdownMenuContent className="bg-dark-tertiary border-gray-600">
                                 <DropdownMenuItem 
                                   className="text-white hover:bg-dark-secondary"
+                                  onClick={() => {
+                                    setEditingAssignmentId(assignment.id);
+                                    setShowEditModal(true);
+                                  }}
                                   data-testid={`menu-edit-assignment-${assignment.id}`}
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
@@ -478,6 +485,13 @@ export default function Homework() {
 
       {/* Add Assignment Modal */}
       <AddHomeworkModal open={showAddModal} onOpenChange={setShowAddModal} />
+      
+      {/* Edit Assignment Modal */}
+      <EditAssignmentModal 
+        open={showEditModal} 
+        onOpenChange={setShowEditModal}
+        assignmentId={editingAssignmentId}
+      />
     </div>
   );
 }
