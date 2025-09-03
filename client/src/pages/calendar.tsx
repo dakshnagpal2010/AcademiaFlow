@@ -23,6 +23,7 @@ export default function Calendar() {
   const { toast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
+  const [showDayEventsModal, setShowDayEventsModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -233,10 +234,15 @@ export default function Calendar() {
                           <div className="space-y-1 overflow-hidden">
                             {dayAssignments.slice(0, 2).map((assignment: any) => {
                               const classInfo = getClassById(assignment.classId);
+                              const eventColor = assignment.color || "#3b82f6";
                               return (
                                 <div
                                   key={assignment.id}
-                                  className="text-xs p-1 rounded bg-primary-500/20 text-primary-300 truncate"
+                                  className="text-xs p-1 rounded text-white truncate"
+                                  style={{ 
+                                    backgroundColor: `${eventColor}80`, // 50% opacity
+                                    borderLeft: `3px solid ${eventColor}`
+                                  }}
                                   title={`${assignment.title} - ${classInfo?.name || 'No class'}`}
                                   data-testid={`calendar-assignment-${assignment.id}`}
                                 >
@@ -245,9 +251,17 @@ export default function Calendar() {
                               );
                             })}
                             {dayAssignments.length > 2 && (
-                              <div className="text-xs text-gray-400 text-center">
-                                +{dayAssignments.length - 2} more
-                              </div>
+                              <button
+                                className="text-xs text-blue-400 hover:text-blue-300 text-center w-full py-1 hover:bg-blue-500/10 rounded"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedDate(date);
+                                  setShowDayEventsModal(true);
+                                }}
+                                data-testid={`see-more-events-${format(date, 'yyyy-MM-dd')}`}
+                              >
+                                See {dayAssignments.length - 2} more
+                              </button>
                             )}
                           </div>
                         </div>
@@ -398,6 +412,78 @@ export default function Calendar() {
         onOpenChange={setShowNoteModal}
         selectedDate={selectedDate}
       />
+
+      {/* Day Events Modal */}
+      {showDayEventsModal && selectedDate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowDayEventsModal(false)}>
+          <div className="bg-dark-secondary border border-gray-700 rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">
+                Events for {format(selectedDate, "MMMM d, yyyy")}
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDayEventsModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              {getAssignmentsForDate(selectedDate).map((assignment: any) => {
+                const classInfo = getClassById(assignment.classId);
+                const eventColor = assignment.color || "#3b82f6";
+                return (
+                  <div
+                    key={assignment.id}
+                    className="p-3 rounded-lg border"
+                    style={{ 
+                      backgroundColor: `${eventColor}20`,
+                      borderColor: `${eventColor}60`
+                    }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-white">{assignment.title}</h4>
+                        {classInfo && (
+                          <p className="text-sm text-gray-400 mt-1">{classInfo.name}</p>
+                        )}
+                        {assignment.description && (
+                          <p className="text-sm text-gray-300 mt-2">{assignment.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2 ml-3">
+                        <Badge className={`text-xs ${
+                          assignment.priority === "high" 
+                            ? "bg-red-500/20 text-red-400"
+                            : assignment.priority === "medium"
+                            ? "bg-yellow-500/20 text-yellow-400"
+                            : "bg-green-500/20 text-green-400"
+                        }`}>
+                          {assignment.priority}
+                        </Badge>
+                        <div 
+                          className="w-4 h-4 rounded-full border-2 border-white"
+                          style={{ backgroundColor: eventColor }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {getAssignmentsForDate(selectedDate).length === 0 && (
+                <div className="text-center py-8 text-gray-400">
+                  <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No events scheduled for this day</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

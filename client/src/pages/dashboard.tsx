@@ -28,6 +28,7 @@ import { useState } from "react";
 import AddClassModal from "@/components/add-class-modal";
 import AddHomeworkModal from "@/components/add-homework-modal";
 import PremiumUpgradeModal from "@/components/premium-upgrade-modal";
+import NotificationsPopover from "@/components/notifications";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 
 export default function Dashboard() {
@@ -37,6 +38,7 @@ export default function Dashboard() {
   const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [showAddHomeworkModal, setShowAddHomeworkModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showAllActivityModal, setShowAllActivityModal] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
   // Inspirational quotes from famous people
@@ -118,6 +120,14 @@ export default function Dashboard() {
   const { data: activities, isLoading: activitiesLoading } = useQuery({
     queryKey: ["/api/activities"],
     enabled: isAuthenticated,
+    retry: false,
+  });
+
+  // All activities query for modal
+  const { data: allActivities, isLoading: allActivitiesLoading } = useQuery({
+    queryKey: ["/api/activities", "all"],
+    queryFn: () => fetch("/api/activities?limit=50").then(res => res.json()),
+    enabled: isAuthenticated && showAllActivityModal,
     retry: false,
   });
 
@@ -203,17 +213,7 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-400 hover:text-white relative"
-              data-testid="button-notifications"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
-              </span>
-            </Button>
+            <NotificationsPopover />
             
             <Button
               size="sm"
@@ -529,23 +529,27 @@ export default function Dashboard() {
                     <span className="text-sm">New Task</span>
                   </Button>
                   
-                  <Button
-                    variant="outline"
-                    className="h-20 bg-green-500/20 border-green-500/30 hover:bg-green-500/30 flex-col"
-                    data-testid="button-quick-calendar"
-                  >
-                    <CalendarIcon className="h-5 w-5 text-green-500 mb-2" />
-                    <span className="text-sm">Calendar</span>
-                  </Button>
+                  <Link href="/calendar">
+                    <Button
+                      variant="outline"
+                      className="h-20 bg-green-500/20 border-green-500/30 hover:bg-green-500/30 flex-col w-full"
+                      data-testid="button-quick-calendar"
+                    >
+                      <CalendarIcon className="h-5 w-5 text-green-500 mb-2" />
+                      <span className="text-sm">Calendar</span>
+                    </Button>
+                  </Link>
                   
-                  <Button
-                    variant="outline"
-                    className="h-20 bg-purple-500/20 border-purple-500/30 hover:bg-purple-500/30 flex-col"
-                    data-testid="button-quick-settings"
-                  >
-                    <Settings className="h-5 w-5 text-purple-500 mb-2" />
-                    <span className="text-sm">Settings</span>
-                  </Button>
+                  <Link href="/settings">
+                    <Button
+                      variant="outline"
+                      className="h-20 bg-purple-500/20 border-purple-500/30 hover:bg-purple-500/30 flex-col w-full"
+                      data-testid="button-quick-settings"
+                    >
+                      <Settings className="h-5 w-5 text-purple-500 mb-2" />
+                      <span className="text-sm">Settings</span>
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
@@ -561,6 +565,7 @@ export default function Dashboard() {
                 variant="ghost"
                 size="sm"
                 className="text-primary-500 hover:text-primary-400"
+                onClick={() => setShowAllActivityModal(true)}
                 data-testid="button-view-all-activity"
               >
                 View All
@@ -616,6 +621,90 @@ export default function Dashboard() {
       <AddClassModal open={showAddClassModal} onOpenChange={setShowAddClassModal} />
       <AddHomeworkModal open={showAddHomeworkModal} onOpenChange={setShowAddHomeworkModal} />
       <PremiumUpgradeModal open={showUpgradeModal} onOpenChange={setShowUpgradeModal} />
+
+      {/* All Activity Modal */}
+      {showAllActivityModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAllActivityModal(false)}>
+          <div className="bg-dark-secondary border border-gray-700 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-white">All Recent Activity</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAllActivityModal(false)}
+                className="text-gray-400 hover:text-white"
+                data-testid="button-close-activity-modal"
+              >
+                ✕
+              </Button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+              {allActivitiesLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center space-x-3 p-4 bg-dark-tertiary rounded-lg">
+                    <Skeleton className="h-3 w-3 rounded-full" />
+                    <Skeleton className="h-4 flex-1" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                ))
+              ) : allActivities && Array.isArray(allActivities) && allActivities.length > 0 ? (
+                allActivities.map((activity: any) => (
+                  <div key={activity.id} className="flex items-center space-x-4 p-4 bg-dark-tertiary rounded-lg hover:bg-dark-primary/50 transition-colors">
+                    <div className="flex-shrink-0">
+                      <div className={`w-3 h-3 rounded-full ${
+                        activity.type === 'assignment_completed' 
+                          ? 'bg-green-400' 
+                          : activity.type === 'class_added'
+                          ? 'bg-blue-400'
+                          : activity.type === 'assignment_created'
+                          ? 'bg-yellow-400'
+                          : 'bg-purple-400'
+                      }`}></div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white" data-testid={`activity-description-${activity.id}`}>
+                        {activity.description}
+                      </p>
+                      {activity.metadata && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {activity.type === 'assignment_completed' && 'Assignment completed'}
+                          {activity.type === 'class_added' && 'New class added'}
+                          {activity.type === 'assignment_created' && 'New assignment created'}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <span className="text-xs text-gray-400">
+                        {format(new Date(activity.createdAt), "MMM d, yyyy")}
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {format(new Date(activity.createdAt), "h:mm a")}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 text-gray-400">
+                  <BookOpen className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <h4 className="text-lg font-medium mb-2">No Activity Yet</h4>
+                  <p className="text-sm">
+                    Your activity history will appear here as you complete assignments, add classes, and interact with the platform.
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {allActivities && Array.isArray(allActivities) && allActivities.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-gray-600">
+                <p className="text-center text-sm text-gray-400">
+                  Showing {allActivities.length} recent activities
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

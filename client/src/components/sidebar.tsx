@@ -16,7 +16,8 @@ import {
   Crown,
   Menu,
   X,
-  Shield
+  Shield,
+  Clock
 } from "lucide-react";
 import ProfileCustomizationModal from "./profile-customization-modal";
 import PremiumUpgradeModal from "./premium-upgrade-modal";
@@ -35,6 +36,7 @@ export default function Sidebar() {
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: Home },
+    { name: "Schedule", href: "/schedule", icon: Clock },
     { name: "Classes", href: "/classes", icon: BookOpen },
     { name: "Homework", href: "/homework", icon: CheckSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
@@ -127,10 +129,10 @@ export default function Sidebar() {
           {!isCollapsed && (
             <div className="mb-8 p-4 bg-dark-tertiary rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">Dark Theme</span>
+                <span className="text-sm text-gray-300">Forest Theme</span>
                 <Switch
-                  checked={theme === "dark"}
-                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                  checked={theme === "forest"}
+                  onCheckedChange={(checked) => setTheme(checked ? "forest" : "dark")}
                   data-testid="switch-theme-toggle"
                 />
               </div>

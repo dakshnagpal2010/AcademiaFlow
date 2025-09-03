@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light";
+type Theme = "dark" | "forest";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -34,21 +34,23 @@ export function ThemeProvider({
     const root = window.document.documentElement;
 
     // Remove any existing theme classes
-    root.classList.remove("light", "dark");
+    root.classList.remove("dark", "forest");
     
     // Apply the current theme
     root.classList.add(theme);
     
-    // For light theme, apply specific light mode styles
-    if (theme === "light") {
-      // Set CSS variables for light theme - simple white background, black text
-      root.style.setProperty('--background', '255 255 255');
-      root.style.setProperty('--foreground', '0 0 0');
-      root.style.setProperty('--card', '255 255 255');
-      root.style.setProperty('--card-foreground', '0 0 0');
-      root.style.setProperty('--border', '229 231 235'); // light gray
-      root.style.setProperty('--muted', '249 250 251');
-      root.style.setProperty('--muted-foreground', '107 114 128');
+    // For forest theme, apply specific forest green styles
+    if (theme === "forest") {
+      // Set CSS variables for forest theme - forest greens and earth tones
+      root.style.setProperty('--background', '15 35 25'); // dark forest green
+      root.style.setProperty('--foreground', '220 255 235'); // light mint
+      root.style.setProperty('--card', '20 45 30'); // darker forest
+      root.style.setProperty('--card-foreground', '210 245 225'); // pale green
+      root.style.setProperty('--border', '40 80 60'); // forest border
+      root.style.setProperty('--muted', '25 50 35'); // muted forest
+      root.style.setProperty('--muted-foreground', '150 180 160'); // muted text
+      root.style.setProperty('--primary', '76 175 80'); // forest green primary
+      root.style.setProperty('--primary-foreground', '255 255 255'); // white text
     } else {
       // Reset to default dark theme
       root.style.removeProperty('--background');
@@ -58,6 +60,8 @@ export function ThemeProvider({
       root.style.removeProperty('--border');
       root.style.removeProperty('--muted');
       root.style.removeProperty('--muted-foreground');
+      root.style.removeProperty('--primary');
+      root.style.removeProperty('--primary-foreground');
     }
   }, [theme]);
 

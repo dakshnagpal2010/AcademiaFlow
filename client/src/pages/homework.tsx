@@ -17,6 +17,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   CheckSquare, 
   Plus, 
@@ -28,8 +35,29 @@ import {
   Calendar as CalendarIcon,
   Filter,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  ArrowUpDown,
+  GripVertical
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import AddHomeworkModal from "@/components/add-homework-modal";
 import EditAssignmentModal from "@/components/edit-assignment-modal";
 import { format, isToday, isTomorrow, isPast, parseISO } from "date-fns";
@@ -43,6 +71,16 @@ export default function Homework() {
   const [editingAssignmentId, setEditingAssignmentId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [sortBy, setSortBy] = useState("default");
+  const [assignmentOrder, setAssignmentOrder] = useState<string[]>([]);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -182,6 +220,76 @@ export default function Homework() {
     }
   };
 
+  // Handle drag end
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = assignmentOrder.indexOf(active.id as string);
+      const newIndex = assignmentOrder.indexOf(over?.id as string);
+      
+      setAssignmentOrder((items) => {
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  // Initialize assignment order when assignments load
+  useEffect(() => {
+    if (assignments && Array.isArray(assignments) && assignments.length > 0) {
+      setAssignmentOrder(assignments.map((a: any) => a.id));
+    }
+  }, [assignments]);
+
+  // Sort assignments
+  const getSortedAssignments = (assignments: any[]) => {
+    if (!assignments) return [];
+
+    let sorted = [...assignments];
+
+    switch (sortBy) {
+      case "priority":
+        sorted.sort((a, b) => {
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+        });
+        break;
+      case "time":
+        sorted.sort((a, b) => {
+          const timeA = a.estimatedTime || 0;
+          const timeB = b.estimatedTime || 0;
+          return timeB - timeA; // Most time first
+        });
+        break;
+      case "default":
+        // Default order: overdue, pending, in_progress, completed
+        sorted.sort((a, b) => {
+          const statusOrder = { 
+            overdue: 0, 
+            pending: 1, 
+            in_progress: 2, 
+            completed: 3 
+          };
+          const aStatus = (a.status !== "completed" && a.dueDate && isPast(parseISO(a.dueDate))) ? "overdue" : a.status;
+          const bStatus = (b.status !== "completed" && b.dueDate && isPast(parseISO(b.dueDate))) ? "overdue" : b.status;
+          return statusOrder[aStatus as keyof typeof statusOrder] - statusOrder[bStatus as keyof typeof statusOrder];
+        });
+        break;
+      case "custom":
+        // Use the current order for custom sorting (drag and drop)
+        if (assignmentOrder.length > 0) {
+          sorted.sort((a, b) => {
+            const aIndex = assignmentOrder.indexOf(a.id);
+            const bIndex = assignmentOrder.indexOf(b.id);
+            return aIndex - bIndex;
+          });
+        }
+        break;
+    }
+
+    return sorted;
+  };
+
   const formatDueDate = (dueDate: string) => {
     const date = parseISO(dueDate);
     if (isToday(date)) return "Due Today";
@@ -219,11 +327,16 @@ export default function Homework() {
   const filterAssignments = (assignments: any[]) => {
     if (!assignments) return [];
 
-    let filtered = assignments.filter((assignment: any) =>
+    // First apply sorting
+    let sorted = getSortedAssignments(assignments);
+
+    // Then filter by search term
+    let filtered = sorted.filter((assignment: any) =>
       assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       assignment.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // Finally filter by tab
     switch (activeTab) {
       case "pending":
         return filtered.filter((a: any) => a.status === "pending");
@@ -240,11 +353,154 @@ export default function Homework() {
     }
   };
 
-  const getClassById = (classId: string) => {
-    return classes?.find((c: any) => c.id === classId);
+  // Handle sort change
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    if (value === "custom") {
+      // Reset assignment order for drag and drop
+      if (assignments && Array.isArray(assignments)) {
+        setAssignmentOrder(assignments.map((a: any) => a.id));
+      }
+    }
   };
 
-  const filteredAssignments = filterAssignments(assignments || []);
+  const getClassById = (classId: string) => {
+    return classes && Array.isArray(classes) ? classes.find((c: any) => c.id === classId) : undefined;
+  };
+
+  const filteredAssignments = filterAssignments(Array.isArray(assignments) ? assignments : []);
+
+// SortableAssignmentItem component
+interface SortableAssignmentItemProps {
+  assignment: any;
+  classInfo: any;
+  onToggleComplete: (id: string, status: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+function SortableAssignmentItem({ assignment, classInfo, onToggleComplete, onEdit, onDelete }: SortableAssignmentItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: assignment.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Card 
+      ref={setNodeRef}
+      style={style}
+      className={`bg-dark-secondary border-gray-700 hover-lift transition-all ${
+        assignment.status === "completed" ? "opacity-75" : ""
+      } ${isDragging ? "z-50" : ""}`}
+    >
+      <CardContent className="p-6">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-700 rounded"
+            >
+              <GripVertical className="h-4 w-4 text-gray-400" />
+            </div>
+            <Checkbox
+              checked={assignment.status === "completed"}
+              onCheckedChange={() => onToggleComplete(assignment.id, assignment.status)}
+              className="h-5 w-5"
+              data-testid={`checkbox-assignment-${assignment.id}`}
+            />
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <h3 className={`font-semibold text-white ${
+                  assignment.status === "completed" ? "line-through" : ""
+                }`} data-testid={`text-assignment-title-${assignment.id}`}>
+                  {assignment.title}
+                </h3>
+                
+                <div className="flex items-center space-x-4 mt-1">
+                  {classInfo && (
+                    <span className="text-sm text-gray-400" data-testid={`text-assignment-class-${assignment.id}`}>
+                      {classInfo.name}
+                    </span>
+                  )}
+                  
+                  {assignment.dueDate && (
+                    <div className="flex items-center space-x-1">
+                      <CalendarIcon className="h-3 w-3 text-gray-500" />
+                      <span className={`text-sm ${getDueDateColor(assignment.dueDate)}`}>
+                        {formatDueDate(assignment.dueDate)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                {assignment.description && (
+                  <p className="text-sm text-gray-400 mt-2 line-clamp-2" data-testid={`text-assignment-description-${assignment.id}`}>
+                    {assignment.description}
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex items-center space-x-2 ml-4">
+                <Badge className={getPriorityColor(assignment.priority)}>
+                  {assignment.priority}
+                </Badge>
+                
+                <Badge className={getStatusColor(assignment.status)}>
+                  {assignment.status.replace("_", " ")}
+                </Badge>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-400 hover:text-white"
+                      data-testid={`button-assignment-menu-${assignment.id}`}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-dark-tertiary border-gray-600">
+                    <DropdownMenuItem 
+                      className="text-white hover:bg-dark-secondary"
+                      onClick={() => onEdit(assignment.id)}
+                      data-testid={`menu-edit-assignment-${assignment.id}`}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Assignment
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-red-400 hover:bg-dark-secondary"
+                      onClick={() => onDelete(assignment.id)}
+                      data-testid={`menu-delete-assignment-${assignment.id}`}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Assignment
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
   if (authLoading) {
     return (
@@ -281,15 +537,32 @@ export default function Homework() {
       <main className="p-6">
         {/* Search and Tabs */}
         <div className="mb-6 space-y-4">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search assignments..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-dark-secondary border-gray-600 text-white"
-              data-testid="input-search-assignments"
-            />
+          <div className="flex items-center gap-4">
+            <div className="relative max-w-md flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search assignments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-dark-secondary border-gray-600 text-white"
+                data-testid="input-search-assignments"
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <ArrowUpDown className="h-4 w-4 text-gray-400" />
+              <Select value={sortBy} onValueChange={handleSortChange}>
+                <SelectTrigger className="w-[200px] bg-dark-secondary border-gray-600 text-white" data-testid="select-sort-by">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent className="bg-dark-secondary border-gray-600">
+                  <SelectItem value="default">Default Order</SelectItem>
+                  <SelectItem value="priority">By Priority</SelectItem>
+                  <SelectItem value="time">By Most Time</SelectItem>
+                  <SelectItem value="custom">Custom (Drag & Drop)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -335,109 +608,32 @@ export default function Homework() {
             ))}
           </div>
         ) : filteredAssignments.length > 0 ? (
-          <div className="space-y-4">
-            {filteredAssignments.map((assignment: any) => {
-              const classInfo = getClassById(assignment.classId);
-              return (
-                <Card 
-                  key={assignment.id} 
-                  className={`bg-dark-secondary border-gray-700 hover-lift transition-all ${
-                    assignment.status === "completed" ? "opacity-75" : ""
-                  }`}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4">
-                      <Checkbox
-                        checked={assignment.status === "completed"}
-                        onCheckedChange={() => handleToggleComplete(assignment.id, assignment.status)}
-                        className="h-5 w-5"
-                        data-testid={`checkbox-assignment-${assignment.id}`}
-                      />
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h3 className={`font-semibold text-white ${
-                              assignment.status === "completed" ? "line-through" : ""
-                            }`} data-testid={`text-assignment-title-${assignment.id}`}>
-                              {assignment.title}
-                            </h3>
-                            
-                            <div className="flex items-center space-x-4 mt-1">
-                              {classInfo && (
-                                <span className="text-sm text-gray-400" data-testid={`text-assignment-class-${assignment.id}`}>
-                                  {classInfo.name}
-                                </span>
-                              )}
-                              
-                              {assignment.dueDate && (
-                                <div className="flex items-center space-x-1">
-                                  <CalendarIcon className="h-3 w-3 text-gray-500" />
-                                  <span className={`text-sm ${getDueDateColor(assignment.dueDate)}`}>
-                                    {formatDueDate(assignment.dueDate)}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {assignment.description && (
-                              <p className="text-sm text-gray-400 mt-2 line-clamp-2" data-testid={`text-assignment-description-${assignment.id}`}>
-                                {assignment.description}
-                              </p>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center space-x-2 ml-4">
-                            <Badge className={getPriorityColor(assignment.priority)}>
-                              {assignment.priority}
-                            </Badge>
-                            
-                            <Badge className={getStatusColor(assignment.status)}>
-                              {assignment.status.replace("_", " ")}
-                            </Badge>
-                            
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-gray-400 hover:text-white"
-                                  data-testid={`button-assignment-menu-${assignment.id}`}
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent className="bg-dark-tertiary border-gray-600">
-                                <DropdownMenuItem 
-                                  className="text-white hover:bg-dark-secondary"
-                                  onClick={() => {
-                                    setEditingAssignmentId(assignment.id);
-                                    setShowEditModal(true);
-                                  }}
-                                  data-testid={`menu-edit-assignment-${assignment.id}`}
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit Assignment
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-red-400 hover:bg-dark-secondary"
-                                  onClick={() => handleDeleteAssignment(assignment.id)}
-                                  data-testid={`menu-delete-assignment-${assignment.id}`}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete Assignment
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={filteredAssignments.map(a => a.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-4">
+                {filteredAssignments.map((assignment: any) => {
+                  const classInfo = getClassById(assignment.classId);
+                  return (
+                    <SortableAssignmentItem
+                      key={assignment.id}
+                      assignment={assignment}
+                      classInfo={classInfo}
+                      onToggleComplete={handleToggleComplete}
+                      onEdit={(id) => {
+                        setEditingAssignmentId(id);
+                        setShowEditModal(true);
+                      }}
+                      onDelete={handleDeleteAssignment}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
         ) : (
           <div className="text-center py-12">
             <div className="w-24 h-24 bg-dark-secondary rounded-full flex items-center justify-center mx-auto mb-6">

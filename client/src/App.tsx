@@ -10,6 +10,7 @@ import Landing from "@/pages/landing";
 import SignUp from "@/pages/signup";
 import SignIn from "@/pages/signin";
 import Dashboard from "@/pages/dashboard";
+import Schedule from "@/pages/schedule";
 import Classes from "@/pages/classes";
 import Homework from "@/pages/homework";
 import Calendar from "@/pages/calendar";
@@ -23,6 +24,7 @@ function AuthenticatedApp() {
       <div className="ml-64 lg:ml-64 md:ml-16 flex-1 transition-all duration-300">
         <Switch>
           <Route path="/" component={Dashboard} />
+          <Route path="/schedule" component={Schedule} />
           <Route path="/classes" component={Classes} />
           <Route path="/homework" component={Homework} />
           <Route path="/calendar" component={Calendar} />

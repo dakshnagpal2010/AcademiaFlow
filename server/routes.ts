@@ -227,6 +227,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const notifications = [];
+      
+      // Get all assignments to find overdue ones
+      const assignments = await storage.getAssignments(userId);
+      const now = new Date();
+      
+      // Check for overdue assignments
+      assignments.forEach((assignment: any) => {
+        if (assignment.status !== 'completed' && assignment.dueDate) {
+          const dueDate = new Date(assignment.dueDate);
+          const timeDiff = now.getTime() - dueDate.getTime();
+          const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+          
+          if (daysDiff > 0) {
+            // Assignment is overdue
+            notifications.push({
+              id: `overdue-${assignment.id}`,
+              type: 'assignment_overdue',
+              title: 'Assignment Overdue',
+              message: `${assignment.title} was due ${daysDiff === 1 ? 'yesterday' : `${daysDiff} days ago`}`,
+              read: false,
+              createdAt: new Date().toISOString(),
+              metadata: {
+                assignmentId: assignment.id,
+                dueDate: assignment.dueDate,
+                daysPastDue: daysDiff
+              }
+            });
+          } else if (daysDiff === 0) {
+            // Assignment is due today
+            notifications.push({
+              id: `due-today-${assignment.id}`,
+              type: 'assignment_due',
+              title: 'Assignment Due Today',
+              message: `${assignment.title} is due today at ${new Date(assignment.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+              read: false,
+              createdAt: new Date().toISOString(),
+              metadata: {
+                assignmentId: assignment.id,
+                dueDate: assignment.dueDate
+              }
+            });
+          } else if (daysDiff === -1) {
+            // Assignment is due tomorrow
+            notifications.push({
+              id: `due-tomorrow-${assignment.id}`,
+              type: 'assignment_due',
+              title: 'Assignment Due Tomorrow',
+              message: `${assignment.title} is due tomorrow at ${new Date(assignment.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+              read: false,
+              createdAt: new Date().toISOString(),
+              metadata: {
+                assignmentId: assignment.id,
+                dueDate: assignment.dueDate
+              }
+            });
+          }
+        }
+      });
+      
+      // Get recent activities for other notifications
+      const activities = await storage.getActivities(userId, 5);
+      activities.forEach((activity: any) => {
+        // Only include certain activity types as notifications
+        if (['assignment_completed', 'class_added'].includes(activity.type)) {
+          notifications.push({
+            id: `activity-${activity.id}`,
+            type: activity.type === 'assignment_completed' ? 'achievement' : 'class_reminder',
+            title: activity.type === 'assignment_completed' ? 'Achievement Unlocked' : 'New Class Added',
+            message: activity.description,
+            read: true, // Mark activities as read by default
+            createdAt: activity.createdAt,
+            metadata: {
+              activityId: activity.id
+            }
+          });
+        }
+      });
+      
+      // Sort notifications by priority and creation date
+      notifications.sort((a, b) => {
+        // Prioritize overdue assignments
+        if (a.type === 'assignment_overdue' && b.type !== 'assignment_overdue') return -1;
+        if (b.type === 'assignment_overdue' && a.type !== 'assignment_overdue') return 1;
+        
+        // Then due today
+        if (a.type === 'assignment_due' && b.type !== 'assignment_due') return -1;
+        if (b.type === 'assignment_due' && a.type !== 'assignment_due') return 1;
+        
+        // Finally by creation date
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

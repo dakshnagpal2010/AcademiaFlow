@@ -38,54 +38,7 @@ export default function NotificationsPopover() {
     retry: false,
   });
 
-  // Generate mock notifications for demo
-  const mockNotifications: Notification[] = [
-    {
-      id: "1",
-      type: "assignment_due",
-      title: "Assignment Due Tomorrow",
-      message: "Math 101 Homework is due tomorrow at 11:59 PM",
-      read: false,
-      createdAt: new Date().toISOString(),
-      metadata: {
-        assignmentId: "1",
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      },
-    },
-    {
-      id: "2",
-      type: "assignment_overdue",
-      title: "Assignment Overdue",
-      message: "Physics Lab Report was due yesterday",
-      read: false,
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      metadata: {
-        assignmentId: "2",
-        dueDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      },
-    },
-    {
-      id: "3",
-      type: "class_reminder",
-      title: "Class Starting Soon",
-      message: "Computer Science 201 starts in 30 minutes",
-      read: true,
-      createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      metadata: {
-        classId: "1",
-      },
-    },
-    {
-      id: "4",
-      type: "achievement",
-      title: "Study Streak Achievement",
-      message: "Congratulations! You've maintained a 7-day study streak",
-      read: true,
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ];
-
-  const displayNotifications: Notification[] = Array.isArray(notifications) && notifications.length > 0 ? notifications : mockNotifications;
+  const displayNotifications: Notification[] = Array.isArray(notifications) ? notifications : [];
   const unreadCount = displayNotifications.filter((n: Notification) => !n.read).length;
 
   const getNotificationIcon = (type: string) => {
@@ -159,7 +112,7 @@ export default function NotificationsPopover() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 bg-dark-secondary border-gray-700" align="end">
+      <PopoverContent className="w-96 p-0 bg-dark-secondary border-gray-700" align="end">
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-white">Notifications</h3>
@@ -181,17 +134,20 @@ export default function NotificationsPopover() {
           )}
         </div>
 
-        <ScrollArea className="h-96">
+        <ScrollArea className="h-[500px]">
           {isLoading ? (
-            <div className="p-4 text-center text-gray-400">
-              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <div className="p-6 text-center text-gray-400">
+              <Bell className="h-8 w-8 mx-auto mb-3 opacity-50" />
               <p className="text-sm">Loading notifications...</p>
             </div>
           ) : displayNotifications.length === 0 ? (
-            <div className="p-8 text-center text-gray-400">
-              <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h4 className="font-medium mb-2">No notifications</h4>
-              <p className="text-sm">You're all caught up!</p>
+            <div className="p-12 text-center text-gray-400">
+              <Bell className="h-16 w-16 mx-auto mb-6 opacity-50" />
+              <h4 className="font-semibold text-lg mb-3 text-white">No notifications at this time</h4>
+              <p className="text-sm leading-relaxed">
+                You're all caught up! We'll notify you about upcoming assignments,<br />
+                overdue tasks, and important updates here.
+              </p>
             </div>
           ) : (
             <div className="p-2">

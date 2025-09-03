@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -22,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Palette, Repeat } from "lucide-react";
 import { format } from "date-fns";
 
 interface AddHomeworkModalProps {
@@ -44,6 +45,10 @@ export default function AddHomeworkModal({
     priority: "medium",
     estimatedHours: "",
     dueDate: undefined as Date | undefined,
+    color: "#3b82f6",
+    repeatPattern: "none",
+    repeatDays: [] as number[],
+    repeatUntil: undefined as Date | undefined,
   });
 
   // Classes query for the dropdown
@@ -59,6 +64,9 @@ export default function AddHomeworkModal({
         classId: data.classId === "none" ? null : data.classId,
         estimatedHours: data.estimatedHours ? parseInt(data.estimatedHours) : undefined,
         dueDate: data.dueDate || undefined,
+        repeatDays: data.repeatPattern === "weekly" ? JSON.stringify(data.repeatDays) : null,
+        repeatUntil: data.repeatPattern !== "none" ? data.repeatUntil : null,
+        repeatPattern: data.repeatPattern === "none" ? null : data.repeatPattern,
       });
     },
     onSuccess: () => {
@@ -77,6 +85,10 @@ export default function AddHomeworkModal({
         priority: "medium",
         estimatedHours: "",
         dueDate: undefined,
+        color: "#3b82f6",
+        repeatPattern: "none",
+        repeatDays: [],
+        repeatUntil: undefined,
       });
     },
     onError: (error) => {
@@ -217,6 +229,114 @@ export default function AddHomeworkModal({
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Color Picker */}
+          <div>
+            <Label className="text-white">Event Color</Label>
+            <div className="flex items-center space-x-3 mt-2">
+              <Palette className="h-4 w-4 text-gray-400" />
+              <div className="flex space-x-2 flex-wrap">
+                {[
+                  "#3b82f6", "#ef4444", "#10b981", "#f59e0b", 
+                  "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16",
+                  "#f97316", "#6366f1", "#14b8a6", "#eab308"
+                ].map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-8 h-8 rounded-full border-2 ${
+                      formData.color === color ? "border-white" : "border-gray-600"
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setFormData({ ...formData, color })}
+                    data-testid={`color-option-${color}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Repeat Pattern */}
+          <div>
+            <Label className="text-white">Repeat Pattern</Label>
+            <Select
+              value={formData.repeatPattern}
+              onValueChange={(value) => setFormData({ ...formData, repeatPattern: value, repeatDays: [] })}
+            >
+              <SelectTrigger className="bg-dark-tertiary border-gray-600 text-white mt-1" data-testid="select-repeat-pattern">
+                <Repeat className="mr-2 h-4 w-4" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-dark-tertiary border-gray-600">
+                <SelectItem value="none">No Repeat</SelectItem>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+                <SelectItem value="yearly">Yearly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Weekly Repeat Days */}
+          {formData.repeatPattern === "weekly" && (
+            <div>
+              <Label className="text-white">Repeat on Days</Label>
+              <div className="grid grid-cols-7 gap-2 mt-2">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+                  <div key={day} className="flex items-center">
+                    <Checkbox
+                      checked={formData.repeatDays.includes(index)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setFormData({
+                            ...formData,
+                            repeatDays: [...formData.repeatDays, index].sort()
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            repeatDays: formData.repeatDays.filter(d => d !== index)
+                          });
+                        }
+                      }}
+                      className="mr-1"
+                      data-testid={`checkbox-day-${index}`}
+                    />
+                    <Label className="text-xs text-gray-300">{day}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Repeat Until */}
+          {formData.repeatPattern !== "none" && (
+            <div>
+              <Label className="text-white">Repeat Until (Optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left bg-dark-tertiary border-gray-600 text-white hover:bg-dark-secondary mt-1"
+                    data-testid="button-repeat-until"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.repeatUntil ? format(formData.repeatUntil, "PPP") : "Select end date (optional)"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-dark-tertiary border-gray-600" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.repeatUntil}
+                    onSelect={(date) => setFormData({ ...formData, repeatUntil: date })}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    className="text-white"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
 
           <div className="flex space-x-3 pt-4">
             <Button
