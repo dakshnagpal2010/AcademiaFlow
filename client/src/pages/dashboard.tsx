@@ -22,7 +22,9 @@ import {
   PencilLine,
   Bell,
   Crown,
-  ExternalLink
+  ExternalLink,
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
 import { useState } from "react";
 import AddClassModal from "@/components/add-class-modal";
@@ -239,15 +241,27 @@ export default function Dashboard() {
               </blockquote>
               <p className="text-gray-400 text-sm">— {quotes[currentQuoteIndex].author}</p>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={nextQuote}
-              className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 ml-4"
-              data-testid="button-next-quote"
-            >
-              <ExternalLink className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center ml-4 bg-purple-500/10 rounded-lg border border-purple-500/20 p-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentQuoteIndex(prev => prev === 0 ? quotes.length - 1 : prev - 1)}
+                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-8 w-8 p-0"
+                data-testid="button-prev-quote"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="w-px h-6 bg-purple-500/30 mx-1"></div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={nextQuote}
+                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-8 w-8 p-0"
+                data-testid="button-next-quote"
+              >
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -320,18 +334,25 @@ export default function Dashboard() {
           <Card className="bg-dark-secondary border-gray-700 hover-lift">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="text-gray-400 text-sm">Next Event</p>
-                  {statsLoading ? (
-                    <Skeleton className="h-8 w-20 mt-1" />
+                  {assignmentsLoading ? (
+                    <Skeleton className="h-8 w-32 mt-1" />
+                  ) : upcomingAssignments && upcomingAssignments.length > 0 ? (
+                    <>
+                      <p className="text-lg font-bold mt-1 text-purple-400 truncate" data-testid="stat-next-event-title">
+                        {upcomingAssignments[0].title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1" data-testid="stat-next-event-date">
+                        {format(new Date(upcomingAssignments[0].dueDate), "MMM d, h:mm a")}
+                      </p>
+                    </>
                   ) : (
-                    <p className="text-2xl font-bold mt-1 text-purple-400" data-testid="stat-study-streak">
-                      {stats?.studyStreak || 0} days
-                    </p>
+                    <p className="text-sm font-medium mt-1 text-gray-400">No upcoming events</p>
                   )}
                 </div>
-                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                  <Flame className="h-6 w-6 text-purple-500" />
+                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <CalendarIcon className="h-6 w-6 text-purple-500" />
                 </div>
               </div>
             </CardContent>

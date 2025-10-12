@@ -166,8 +166,9 @@ export default function Settings() {
   };
 
   const themeOptions = [
-    { value: "dark", name: "Dark", gradient: "from-primary-500 to-purple-500" },
-    { value: "forest", name: "Forest", gradient: "from-green-500 to-teal-500" },
+    { value: "default", name: "Default", gradient: "from-primary-500 to-purple-500" },
+    { value: "nature", name: "Nature", gradient: "from-green-500 to-teal-500" },
+    { value: "sunset", name: "Sunset", gradient: "from-orange-500 to-pink-500" },
   ];
 
   if (authLoading) {

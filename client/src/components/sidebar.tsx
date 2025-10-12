@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/components/theme-provider";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,6 +29,7 @@ export default function Sidebar() {
   const [location] = useLocation();
   const { user, signOut, isSigningOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showStaffModal, setShowStaffModal] = useState(false);
@@ -64,7 +66,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-16' : 'w-72'} bg-dark-secondary glass-effect border-r border-gray-700 z-40 transition-all duration-300 overflow-y-auto overflow-x-hidden`}>
+      <div className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-16' : 'w-80'} bg-dark-secondary glass-effect border-r border-gray-700 z-40 transition-all duration-300 overflow-y-auto overflow-x-hidden`}>
         <div className={`${isCollapsed ? 'p-3' : 'p-8'}`}>
           {/* Toggle Button */}
           <Button
@@ -129,10 +131,10 @@ export default function Sidebar() {
           {!isCollapsed && (
             <div className="mb-8 p-4 bg-dark-tertiary rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">Forest Theme</span>
+                <span className="text-sm text-gray-300">Dark Theme</span>
                 <Switch
-                  checked={theme === "forest"}
-                  onCheckedChange={(checked) => setTheme(checked ? "forest" : "dark")}
+                  checked={theme === "dark"}
+                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
                   data-testid="switch-theme-toggle"
                 />
               </div>
@@ -244,7 +246,10 @@ export default function Sidebar() {
         onOpenChange={setShowStaffModal}
         onStaffModeActivated={() => {
           setIsStaffMode(true);
-          setShowStaffModal(false);
+          toast({
+            title: "Staff Mode Activated",
+            description: "You now have staff access.",
+          });
         }}
       />
     </>
