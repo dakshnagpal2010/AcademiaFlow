@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useStaffMode } from "@/contexts/staff-mode-context";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,7 @@ import { format, isToday, isTomorrow, isPast } from "date-fns";
 export default function Dashboard() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { isStaffMode } = useStaffMode();
   const queryClient = useQueryClient();
   const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [showAddHomeworkModal, setShowAddHomeworkModal] = useState(false);
@@ -217,21 +219,36 @@ export default function Dashboard() {
           <div className="flex items-center space-x-4">
             <NotificationsPopover />
             
-            <Button
-              size="sm"
-              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 premium-glow"
-              onClick={() => setShowUpgradeModal(true)}
-              data-testid="button-upgrade-header"
-            >
-              <Crown className="h-4 w-4 mr-2" />
-              Upgrade to Pro
-            </Button>
+            {isStaffMode ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-2 border-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-border text-white font-semibold hover:from-yellow-500 hover:to-yellow-700 relative"
+                style={{
+                  borderImage: "linear-gradient(to right, rgb(250, 204, 21), rgb(202, 138, 4)) 1",
+                }}
+                onClick={() => setShowUpgradeModal(true)}
+                data-testid="button-upgrade-header"
+              >
+                AF PRO
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 premium-glow"
+                onClick={() => setShowUpgradeModal(true)}
+                data-testid="button-upgrade-header"
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                Upgrade to Pro
+              </Button>
+            )}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="p-6 space-y-6">
+      <main className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Inspirational Quote Section */}
         <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg p-6">
           <div className="flex items-center justify-between">
@@ -266,7 +283,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Link href="/classes">
             <Card className="bg-dark-secondary border-gray-700 hover-lift cursor-pointer hover:bg-dark-tertiary transition-colors">
               <CardContent className="p-6">
@@ -359,7 +376,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Upcoming Assignments */}
           <div className="lg:col-span-2">
             <Card className="bg-dark-secondary border-gray-700">
