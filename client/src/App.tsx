@@ -21,7 +21,7 @@ function AuthenticatedApp() {
   return (
     <div className="flex min-h-screen bg-dark-primary">
       <Sidebar />
-      <div className="ml-64 lg:ml-64 md:ml-16 flex-1 transition-all duration-300">
+      <div className="ml-80 lg:ml-80 md:ml-16 flex-1 transition-all duration-300">
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/schedule" component={Schedule} />
