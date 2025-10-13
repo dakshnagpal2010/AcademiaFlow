@@ -103,6 +103,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/classes/reorder', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const { classIds } = z.object({ classIds: z.array(z.string()) }).parse(req.body);
+      await storage.reorderClasses(userId, classIds);
+      res.json({ message: "Classes reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering classes:", error);
+      res.status(500).json({ message: "Failed to reorder classes" });
+    }
+  });
+
   // Assignment routes
   app.get('/api/assignments', isAuthenticated, async (req: any, res) => {
     try {
