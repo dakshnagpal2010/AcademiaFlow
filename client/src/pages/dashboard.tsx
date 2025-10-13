@@ -223,14 +223,16 @@ export default function Dashboard() {
               <Button
                 size="sm"
                 variant="outline"
-                className="border-2 border-transparent bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-border text-white font-semibold hover:from-yellow-500 hover:to-yellow-700 relative"
+                className="bg-transparent border-2 border-transparent hover:bg-yellow-500/10 relative"
                 style={{
                   borderImage: "linear-gradient(to right, rgb(250, 204, 21), rgb(202, 138, 4)) 1",
                 }}
                 onClick={() => setShowUpgradeModal(true)}
                 data-testid="button-upgrade-header"
               >
-                AF PRO
+                <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent font-semibold">
+                  AF PRO
+                </span>
               </Button>
             ) : (
               <Button
@@ -283,7 +285,8 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          {/* Row 1: Total Classes and Pending Tasks */}
           <Link href="/classes">
             <Card className="bg-dark-secondary border-gray-700 hover-lift cursor-pointer hover:bg-dark-tertiary transition-colors">
               <CardContent className="p-6">
@@ -328,6 +331,7 @@ export default function Dashboard() {
             </Card>
           </Link>
 
+          {/* Row 2: Completed Today and Next Event */}
           <Card className="bg-dark-secondary border-gray-700 hover-lift">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
