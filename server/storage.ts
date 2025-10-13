@@ -31,6 +31,7 @@ export interface IStorage {
   createClass(classData: InsertClass): Promise<Class>;
   updateClass(id: string, updates: UpdateClass): Promise<Class>;
   deleteClass(id: string): Promise<void>;
+  reorderClasses(userId: string, classIds: string[]): Promise<void>;
 
   // Assignment operations
   getAssignments(userId: string): Promise<Assignment[]>;
@@ -90,7 +91,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(classes)
       .where(eq(classes.userId, userId))
-      .orderBy(asc(classes.name));
+      .orderBy(asc(classes.displayOrder), asc(classes.name));
   }
 
   async getClass(id: string): Promise<Class | undefined> {
@@ -114,6 +115,18 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClass(id: string): Promise<void> {
     await db.delete(classes).where(eq(classes.id, id));
+  }
+
+  async reorderClasses(userId: string, classIds: string[]): Promise<void> {
+    // Update display order for each class
+    await Promise.all(
+      classIds.map((classId, index) =>
+        db
+          .update(classes)
+          .set({ displayOrder: index, updatedAt: new Date() })
+          .where(and(eq(classes.id, classId), eq(classes.userId, userId)))
+      )
+    );
   }
 
   // Assignment operations

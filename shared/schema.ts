@@ -58,6 +58,7 @@ export const classes = pgTable("classes", {
   room: varchar("room"),
   credits: integer("credits"),
   description: text("description"),
+  displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
