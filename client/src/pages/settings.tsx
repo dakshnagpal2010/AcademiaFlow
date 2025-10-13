@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/components/theme-provider";
 import { useToast } from "@/hooks/use-toast";
+import { useStaffMode } from "@/contexts/staff-mode-context";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +40,7 @@ export default function Settings() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const { isStaffMode } = useStaffMode();
   const queryClient = useQueryClient();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -191,7 +193,7 @@ export default function Settings() {
             <h1 className="text-3xl font-bold" data-testid="text-settings-title">Settings</h1>
             <p className="text-gray-400 mt-1">Manage your account and preferences</p>
           </div>
-          {!(user as any)?.isPremium && (
+          {!(user as any)?.isPremium && !isStaffMode && (
             <Button
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white premium-glow"
               onClick={() => setShowUpgradeModal(true)}
@@ -199,6 +201,21 @@ export default function Settings() {
             >
               <Crown className="h-4 w-4 mr-2" />
               Upgrade to Pro
+            </Button>
+          )}
+          {isStaffMode && (
+            <Button
+              variant="outline"
+              className="bg-transparent border-2 border-transparent hover:bg-yellow-500/10 relative"
+              style={{
+                borderImage: "linear-gradient(to right, rgb(250, 204, 21), rgb(202, 138, 4)) 1",
+              }}
+              onClick={() => setShowUpgradeModal(true)}
+              data-testid="button-upgrade-settings"
+            >
+              <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent font-semibold">
+                AF PRO
+              </span>
             </Button>
           )}
         </div>
@@ -327,48 +344,116 @@ export default function Settings() {
               {/* Theme Selection */}
               <div>
                 <Label className="text-white mb-3 block">App Theme</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                  {/* Original Theme (Active) */}
                   <button
-                    className={`p-4 rounded-lg border transition-all ${
-                      theme === "dark"
-                        ? "border-primary-500 bg-primary-500/20"
-                        : "border-gray-600 bg-dark-tertiary hover:border-gray-500"
-                    }`}
-                    onClick={() => setTheme("dark")}
-                    data-testid="theme-dark"
+                    className="p-3 rounded-lg border border-primary-500 bg-primary-500/20 transition-all relative"
+                    data-testid="theme-original"
                   >
-                    <div className="w-full h-8 rounded bg-gradient-to-r from-gray-800 to-gray-900 mb-2"></div>
-                    <p className="text-sm text-white font-medium">Dark Theme</p>
-                    <p className="text-xs text-gray-400">Default dark interface</p>
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-gray-800 to-gray-900 mb-2"></div>
+                    <p className="text-xs text-white font-medium">Original</p>
+                    <p className="text-xs text-gray-400">Current</p>
                   </button>
                   
+                  {/* Light Theme (Coming Soon) */}
                   <button
-                    className={`p-4 rounded-lg border transition-all ${
-                      theme === "light"
-                        ? "border-primary-500 bg-primary-500/20"
-                        : "border-gray-600 bg-dark-tertiary hover:border-gray-500"
-                    }`}
-                    onClick={() => setTheme("light")}
+                    disabled
+                    className="p-3 rounded-lg border border-gray-600 bg-dark-tertiary/50 opacity-60 cursor-not-allowed transition-all relative"
                     data-testid="theme-light"
                   >
-                    <div className="w-full h-8 rounded bg-gradient-to-r from-white to-gray-100 mb-2"></div>
-                    <p className="text-sm text-white font-medium">Light Theme</p>
-                    <p className="text-xs text-gray-400">Light background, dark text</p>
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-white to-gray-100 mb-2"></div>
+                    <p className="text-xs text-gray-300 font-medium">Light</p>
+                    <Badge className="absolute top-1 right-1 text-[10px] px-1 py-0 h-4 bg-yellow-500/80">Soon</Badge>
+                  </button>
+
+                  {/* Forest Theme (Coming Soon) */}
+                  <button
+                    disabled
+                    className="p-3 rounded-lg border border-gray-600 bg-dark-tertiary/50 opacity-60 cursor-not-allowed transition-all relative"
+                    data-testid="theme-forest"
+                  >
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-green-700 to-emerald-900 mb-2"></div>
+                    <p className="text-xs text-gray-300 font-medium">Forest</p>
+                    <Badge className="absolute top-1 right-1 text-[10px] px-1 py-0 h-4 bg-yellow-500/80">Soon</Badge>
+                  </button>
+
+                  {/* Sport Mode (Coming Soon) */}
+                  <button
+                    disabled
+                    className="p-3 rounded-lg border border-gray-600 bg-dark-tertiary/50 opacity-60 cursor-not-allowed transition-all relative"
+                    data-testid="theme-sport"
+                  >
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-red-600 to-orange-500 mb-2"></div>
+                    <p className="text-xs text-gray-300 font-medium">Sport</p>
+                    <Badge className="absolute top-1 right-1 text-[10px] px-1 py-0 h-4 bg-yellow-500/80">Soon</Badge>
+                  </button>
+
+                  {/* Ocean Theme (Coming Soon) */}
+                  <button
+                    disabled
+                    className="p-3 rounded-lg border border-gray-600 bg-dark-tertiary/50 opacity-60 cursor-not-allowed transition-all relative"
+                    data-testid="theme-ocean"
+                  >
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-blue-600 to-cyan-500 mb-2"></div>
+                    <p className="text-xs text-gray-300 font-medium">Ocean</p>
+                    <Badge className="absolute top-1 right-1 text-[10px] px-1 py-0 h-4 bg-yellow-500/80">Soon</Badge>
+                  </button>
+
+                  {/* Sunset Theme (Coming Soon) */}
+                  <button
+                    disabled
+                    className="p-3 rounded-lg border border-gray-600 bg-dark-tertiary/50 opacity-60 cursor-not-allowed transition-all relative"
+                    data-testid="theme-sunset"
+                  >
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-orange-500 to-pink-500 mb-2"></div>
+                    <p className="text-xs text-gray-300 font-medium">Sunset</p>
+                    <Badge className="absolute top-1 right-1 text-[10px] px-1 py-0 h-4 bg-yellow-500/80">Soon</Badge>
+                  </button>
+
+                  {/* Purple Dream (Coming Soon) */}
+                  <button
+                    disabled
+                    className="p-3 rounded-lg border border-gray-600 bg-dark-tertiary/50 opacity-60 cursor-not-allowed transition-all relative"
+                    data-testid="theme-purple-dream"
+                  >
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-purple-600 to-indigo-700 mb-2"></div>
+                    <p className="text-xs text-gray-300 font-medium">Purple Dream</p>
+                    <Badge className="absolute top-1 right-1 text-[10px] px-1 py-0 h-4 bg-yellow-500/80">Soon</Badge>
+                  </button>
+
+                  {/* Neon Nights (Coming Soon) */}
+                  <button
+                    disabled
+                    className="p-3 rounded-lg border border-gray-600 bg-dark-tertiary/50 opacity-60 cursor-not-allowed transition-all relative"
+                    data-testid="theme-neon"
+                  >
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-pink-500 to-violet-600 mb-2"></div>
+                    <p className="text-xs text-gray-300 font-medium">Neon Nights</p>
+                    <Badge className="absolute top-1 right-1 text-[10px] px-1 py-0 h-4 bg-yellow-500/80">Soon</Badge>
+                  </button>
+
+                  {/* Autumn (Coming Soon) */}
+                  <button
+                    disabled
+                    className="p-3 rounded-lg border border-gray-600 bg-dark-tertiary/50 opacity-60 cursor-not-allowed transition-all relative"
+                    data-testid="theme-autumn"
+                  >
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-amber-600 to-red-700 mb-2"></div>
+                    <p className="text-xs text-gray-300 font-medium">Autumn</p>
+                    <Badge className="absolute top-1 right-1 text-[10px] px-1 py-0 h-4 bg-yellow-500/80">Soon</Badge>
+                  </button>
+
+                  {/* Midnight (Coming Soon) */}
+                  <button
+                    disabled
+                    className="p-3 rounded-lg border border-gray-600 bg-dark-tertiary/50 opacity-60 cursor-not-allowed transition-all relative"
+                    data-testid="theme-midnight"
+                  >
+                    <div className="w-full h-12 rounded bg-gradient-to-r from-slate-900 to-blue-900 mb-2"></div>
+                    <p className="text-xs text-gray-300 font-medium">Midnight</p>
+                    <Badge className="absolute top-1 right-1 text-[10px] px-1 py-0 h-4 bg-yellow-500/80">Soon</Badge>
                   </button>
                 </div>
-              </div>
-
-              {/* Dark Mode Toggle */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-white">Dark Mode</Label>
-                  <p className="text-sm text-gray-400">Use dark theme for better nighttime viewing</p>
-                </div>
-                <Switch
-                  checked={theme === "dark"}
-                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                  data-testid="switch-dark-mode"
-                />
               </div>
 
               {/* Animations Toggle */}

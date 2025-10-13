@@ -66,7 +66,30 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className={`fixed left-0 top-0 h-full w-16 ${isCollapsed ? 'lg:w-16' : 'lg:w-80'} bg-dark-secondary glass-effect border-r border-gray-700 z-40 transition-all duration-300 overflow-y-auto overflow-x-hidden`}>
+      {/* Collapsed Sidebar - Only Logo and Arrow (Desktop Only) */}
+      {isCollapsed && (
+        <div className="fixed left-0 top-0 h-full w-20 bg-dark-secondary/50 backdrop-blur-sm border-r border-gray-700/50 z-40 transition-all duration-300 flex flex-col items-center py-6">
+          {/* Logo */}
+          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-purple-500 rounded-lg flex items-center justify-center mb-6">
+            <GraduationCap className="h-7 w-7 text-white" />
+          </div>
+          
+          {/* Open Sidebar Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-10 w-10 p-0 rounded-full bg-primary-500/20 hover:bg-primary-500/30 text-primary-400 hover:text-primary-300 border border-primary-500/30 flex items-center justify-center"
+            onClick={() => setIsCollapsed(false)}
+            data-testid="button-toggle-sidebar"
+            title="Open Sidebar"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
+
+      {/* Full Sidebar */}
+      <div className={`fixed left-0 top-0 h-full ${isCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-16 lg:w-80'} bg-dark-secondary glass-effect border-r border-gray-700 z-40 transition-all duration-300 overflow-y-auto overflow-x-hidden`}>
         <div className="p-3 lg:p-8">
           {/* Logo */}
           <div className="flex items-center justify-center lg:justify-between mb-4">

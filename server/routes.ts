@@ -274,11 +274,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           } else if (daysDiff === -1) {
             // Assignment is due tomorrow
+            const className = assignment.class?.name || 'Unknown Class';
             notifications.push({
               id: `due-tomorrow-${assignment.id}`,
               type: 'assignment_due',
               title: 'Assignment Due Tomorrow',
-              message: `${assignment.title} is due tomorrow at ${new Date(assignment.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+              message: `${assignment.title} for ${className} is due tomorrow`,
               read: false,
               createdAt: new Date().toISOString(),
               metadata: {
