@@ -16,6 +16,7 @@ import Schedule from "@/pages/schedule";
 import Classes from "@/pages/classes";
 import Homework from "@/pages/homework";
 import Calendar from "@/pages/calendar";
+import DailyPlanner from "@/pages/daily-planner";
 import Settings from "@/pages/settings";
 import Sidebar from "@/components/sidebar";
 
@@ -32,6 +33,7 @@ function AuthenticatedLayout() {
           <Route path="/classes" component={Classes} />
           <Route path="/homework" component={Homework} />
           <Route path="/calendar" component={Calendar} />
+          <Route path="/daily-planner" component={DailyPlanner} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

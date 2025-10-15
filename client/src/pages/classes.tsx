@@ -28,6 +28,7 @@ import {
   GripVertical
 } from "lucide-react";
 import AddClassModal from "@/components/add-class-modal";
+import EditClassModal from "@/components/edit-class-modal";
 import {
   DndContext,
   closestCenter,
@@ -47,7 +48,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 // Sortable Class Card Component
-function SortableClassCard({ classItem, onDelete }: { classItem: any; onDelete: (id: string) => void }) {
+function SortableClassCard({ classItem, onDelete, onEdit }: { classItem: any; onDelete: (id: string) => void; onEdit: (id: string) => void }) {
   const {
     attributes,
     listeners,
@@ -108,6 +109,7 @@ function SortableClassCard({ classItem, onDelete }: { classItem: any; onDelete: 
               <DropdownMenuContent className="bg-dark-tertiary border-gray-600">
                 <DropdownMenuItem 
                   className="text-white hover:bg-dark-secondary"
+                  onClick={() => onEdit(classItem.id)}
                   data-testid={`menu-edit-class-${classItem.id}`}
                 >
                   <Edit className="h-4 w-4 mr-2" />
@@ -178,6 +180,8 @@ export default function Classes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingClassId, setEditingClassId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [localClasses, setLocalClasses] = useState<any[]>([]);
 
@@ -294,6 +298,11 @@ export default function Classes() {
     }
   };
 
+  const handleEditClass = (classId: string) => {
+    setEditingClassId(classId);
+    setShowEditModal(true);
+  };
+
   // Handle drag end
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -403,6 +412,7 @@ export default function Classes() {
                     key={classItem.id}
                     classItem={classItem}
                     onDelete={handleDeleteClass}
+                    onEdit={handleEditClass}
                   />
                 ))}
               </div>
@@ -434,6 +444,13 @@ export default function Classes() {
 
       {/* Add Class Modal */}
       <AddClassModal open={showAddModal} onOpenChange={setShowAddModal} />
+      
+      {/* Edit Class Modal */}
+      <EditClassModal 
+        open={showEditModal} 
+        onOpenChange={setShowEditModal}
+        classId={editingClassId}
+      />
     </div>
   );
 }

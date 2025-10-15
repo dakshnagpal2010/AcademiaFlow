@@ -254,11 +254,18 @@ export default function Homework() {
           return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
         });
         break;
-      case "time":
+      case "time-most":
         sorted.sort((a, b) => {
           const timeA = a.estimatedTime || 0;
           const timeB = b.estimatedTime || 0;
           return timeB - timeA; // Most time first
+        });
+        break;
+      case "time-least":
+        sorted.sort((a, b) => {
+          const timeA = a.estimatedTime || 0;
+          const timeB = b.estimatedTime || 0;
+          return timeA - timeB; // Least time first
         });
         break;
       case "default":
@@ -558,7 +565,8 @@ function SortableAssignmentItem({ assignment, classInfo, onToggleComplete, onEdi
                 <SelectContent className="bg-dark-secondary border-gray-600">
                   <SelectItem value="default">Default Order</SelectItem>
                   <SelectItem value="priority">By Priority</SelectItem>
-                  <SelectItem value="time">By Most Time</SelectItem>
+                  <SelectItem value="time-most">By Most Time</SelectItem>
+                  <SelectItem value="time-least">By Least Time</SelectItem>
                   <SelectItem value="custom">Custom (Drag & Drop)</SelectItem>
                 </SelectContent>
               </Select>
