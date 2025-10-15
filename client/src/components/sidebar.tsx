@@ -19,7 +19,8 @@ import {
   ChevronRight,
   X,
   Shield,
-  Clock
+  Clock,
+  Sparkles
 } from "lucide-react";
 import ProfileCustomizationModal from "./profile-customization-modal";
 import PremiumUpgradeModal from "./premium-upgrade-modal";
@@ -42,7 +43,6 @@ export default function Sidebar() {
     { name: "Classes", href: "/classes", icon: BookOpen },
     { name: "Homework", href: "/homework", icon: CheckSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
-    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   const isActive = (href: string) => {
@@ -141,6 +141,22 @@ export default function Sidebar() {
               );
             })}
             
+            {/* Daily Planner - ChronoPlan */}
+            <Link href="/daily-planner">
+              <div
+                className={`flex items-center justify-center lg:justify-start lg:space-x-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+                  isActive("/daily-planner")
+                    ? "bg-primary-500 text-white"
+                    : "text-gray-300 hover:bg-dark-tertiary hover:text-white"
+                }`}
+                data-testid="nav-daily-planner"
+                title="ChronoPlan"
+              >
+                <Sparkles className="h-5 w-5" />
+                <span className="hidden lg:block">ChronoPlan</span>
+              </div>
+            </Link>
+
             {/* AI Assistant - Premium Feature */}
             <button
               onClick={() => setShowUpgradeModal(true)}
@@ -152,6 +168,22 @@ export default function Sidebar() {
               <span className="hidden lg:inline">AI Assistant</span>
               {!isStaffMode && <Crown className="h-4 w-4 text-purple-400 absolute top-1 right-1 hidden lg:block" />}
             </button>
+
+            {/* Settings */}
+            <Link href="/settings">
+              <div
+                className={`flex items-center justify-center lg:justify-start lg:space-x-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+                  isActive("/settings")
+                    ? "bg-primary-500 text-white"
+                    : "text-gray-300 hover:bg-dark-tertiary hover:text-white"
+                }`}
+                data-testid="nav-settings"
+                title="Settings"
+              >
+                <Settings className="h-5 w-5" />
+                <span className="hidden lg:block">Settings</span>
+              </div>
+            </Link>
           </nav>
 
           {/* Profile Section */}

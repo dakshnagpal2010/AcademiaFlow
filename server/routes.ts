@@ -244,8 +244,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.userId;
       const notifications = [];
       
-      // Get all assignments to find overdue ones
+      // Get all assignments and classes
       const assignments = await storage.getAssignments(userId);
+      const classes = await storage.getClasses(userId);
+      const classMap = new Map(classes.map(c => [c.id, c]));
       const now = new Date();
       
       // Check for overdue assignments
@@ -255,19 +257,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const timeDiff = now.getTime() - dueDate.getTime();
           const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
           
+          const classInfo = assignment.classId ? classMap.get(assignment.classId) : null;
+          const className = classInfo?.name || 'Unknown Class';
+          
           if (daysDiff > 0) {
             // Assignment is overdue
             notifications.push({
               id: `overdue-${assignment.id}`,
               type: 'assignment_overdue',
               title: 'Assignment Overdue',
-              message: `${assignment.title} was due ${daysDiff === 1 ? 'yesterday' : `${daysDiff} days ago`}`,
+              message: `${assignment.title} for ${className} was due ${daysDiff === 1 ? 'yesterday' : `${daysDiff} days ago`}`,
               read: false,
               createdAt: new Date().toISOString(),
               metadata: {
                 assignmentId: assignment.id,
                 dueDate: assignment.dueDate,
-                daysPastDue: daysDiff
+                daysPastDue: daysDiff,
+                className
               }
             });
           } else if (daysDiff === 0) {
@@ -276,27 +282,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
               id: `due-today-${assignment.id}`,
               type: 'assignment_due',
               title: 'Assignment Due Today',
-              message: `${assignment.title} is due today at ${new Date(assignment.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+              message: `${assignment.title} for ${className} is due today`,
               read: false,
               createdAt: new Date().toISOString(),
               metadata: {
                 assignmentId: assignment.id,
-                dueDate: assignment.dueDate
+                dueDate: assignment.dueDate,
+                className
               }
             });
           } else if (daysDiff === -1) {
             // Assignment is due tomorrow
-            const className = assignment.class?.name || 'Unknown Class';
             notifications.push({
               id: `due-tomorrow-${assignment.id}`,
               type: 'assignment_due',
-              title: 'Assignment Due Tomorrow',
+              title: 'Due Tomorrow',
               message: `${assignment.title} for ${className} is due tomorrow`,
               read: false,
               createdAt: new Date().toISOString(),
               metadata: {
                 assignmentId: assignment.id,
-                dueDate: assignment.dueDate
+                dueDate: assignment.dueDate,
+                className
               }
             });
           }
