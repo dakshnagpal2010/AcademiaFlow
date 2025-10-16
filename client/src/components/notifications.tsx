@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, Check, X, Clock, BookOpen, AlertTriangle } from "lucide-react";
+import { Bell, Check, X, Clock, BookOpen, AlertTriangle, RefreshCw } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -30,6 +30,8 @@ interface Notification {
 export default function NotificationsPopover() {
   const { isAuthenticated } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // In a real app, this would fetch from an API
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
@@ -92,6 +94,15 @@ export default function NotificationsPopover() {
     console.log("Marking all notifications as read");
   };
 
+  const handleReload = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    // Add a small delay for visual feedback
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 500);
+  };
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -116,16 +127,30 @@ export default function NotificationsPopover() {
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-white">Notifications</h3>
-            {unreadCount > 0 && (
+            <div className="flex items-center space-x-2">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={markAllAsRead}
-                className="text-xs text-primary-400 hover:text-primary-300"
+                onClick={handleReload}
+                disabled={isRefreshing}
+                className="text-gray-400 hover:text-white hover:bg-dark-tertiary"
+                data-testid="button-reload-notifications"
+                title="Reload notifications"
               >
-                Mark all read
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
-            )}
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={markAllAsRead}
+                  className="text-xs text-primary-400 hover:text-primary-300"
+                  data-testid="button-mark-all-read"
+                >
+                  Mark all read
+                </Button>
+              )}
+            </div>
           </div>
           {unreadCount > 0 && (
             <p className="text-sm text-gray-400 mt-1">
