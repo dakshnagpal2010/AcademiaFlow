@@ -39,10 +39,10 @@ export default function Sidebar() {
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: Home },
-    { name: "Schedule", href: "/schedule", icon: Clock },
     { name: "Classes", href: "/classes", icon: BookOpen },
     { name: "Homework", href: "/homework", icon: CheckSquare },
     { name: "Calendar", href: "/calendar", icon: Calendar },
+    { name: "Schedule", href: "/schedule", icon: Clock },
   ];
 
   const isActive = (href: string) => {

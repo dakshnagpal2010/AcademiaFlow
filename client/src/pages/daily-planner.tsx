@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useStaffMode } from "@/contexts/staff-mode-context";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,8 @@ import {
   Star,
   GripVertical,
   Sparkles,
-  Layout
+  Layout,
+  ArrowUpDown
 } from "lucide-react";
 import {
   Dialog,
@@ -177,38 +179,52 @@ function SortableTimeSlot({ slot, onEdit, onDelete }: { slot: TimeSlot; onEdit: 
 
 export default function DailyPlanner() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isStaffMode } = useStaffMode();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
-    {
-      id: '1',
-      title: 'Morning Routine',
-      startTime: '07:00',
-      endTime: '08:00',
-      category: 'personal',
-      notes: 'Exercise, shower, breakfast',
-      priority: 'high'
-    },
-    {
-      id: '2',
-      title: 'Deep Work Session',
-      startTime: '09:00',
-      endTime: '11:00',
-      category: 'work',
-      notes: 'Focus on important projects',
-      priority: 'high'
-    },
-    {
-      id: '3',
-      title: 'Lunch Break',
-      startTime: '12:00',
-      endTime: '13:00',
-      category: 'break',
-      priority: 'medium'
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(() => {
+    const defaultSlots = [
+      {
+        id: '1',
+        title: 'Morning Routine',
+        startTime: '07:00',
+        endTime: '08:00',
+        category: 'personal',
+        notes: 'Exercise, shower, breakfast',
+        priority: 'high'
+      },
+      {
+        id: '2',
+        title: 'Deep Work Session',
+        startTime: '09:00',
+        endTime: '11:00',
+        category: 'work',
+        notes: 'Focus on important projects',
+        priority: 'high'
+      },
+      {
+        id: '3',
+        title: 'Lunch Break',
+        startTime: '12:00',
+        endTime: '13:00',
+        category: 'break',
+        priority: 'medium'
+      }
+    ];
+    
+    // Load from localStorage if available
+    const storedPlans = localStorage.getItem('chronoplan-slots');
+    if (storedPlans) {
+      const plans = JSON.parse(storedPlans);
+      const today = format(new Date(), 'yyyy-MM-dd');
+      return plans[today] || defaultSlots;
     }
-  ]);
+    return defaultSlots;
+  });
 
   const [showAddEditModal, setShowAddEditModal] = useState(false);
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [copyToDate, setCopyToDate] = useState('');
   const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
   const [formData, setFormData] = useState<Partial<TimeSlot>>({
     title: '',
@@ -238,6 +254,18 @@ export default function DailyPlanner() {
       }, 500);
     }
   }, [isAuthenticated, authLoading, toast]);
+
+  // Load slots when date changes
+  useEffect(() => {
+    const storedPlans = localStorage.getItem('chronoplan-slots');
+    if (storedPlans) {
+      const plans = JSON.parse(storedPlans);
+      const dateSlots = plans[selectedDate];
+      if (dateSlots) {
+        setTimeSlots(dateSlots);
+      }
+    }
+  }, [selectedDate]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -317,6 +345,58 @@ export default function DailyPlanner() {
     });
   };
 
+  const handleCopyToDay = () => {
+    if (!copyToDate) {
+      toast({
+        title: "Error",
+        description: "Please select a date to copy to.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (timeSlots.length === 0) {
+      toast({
+        title: "Error",
+        description: "No time slots to copy.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create copies of time slots with new IDs for the target date
+    const copiedSlots = timeSlots.map(slot => ({
+      ...slot,
+      id: `${Date.now()}-${Math.random()}`, // Generate unique ID
+    }));
+
+    // Store copied slots in localStorage keyed by date
+    const storedPlans = localStorage.getItem('chronoplan-slots') || '{}';
+    const plans = JSON.parse(storedPlans);
+    plans[copyToDate] = copiedSlots;
+    localStorage.setItem('chronoplan-slots', JSON.stringify(plans));
+
+    toast({
+      title: "Success",
+      description: `Successfully copied ${timeSlots.length} time slot(s) to ${format(new Date(copyToDate), 'MMM d, yyyy')}`,
+    });
+    setShowCopyModal(false);
+    setCopyToDate('');
+  };
+
+  const handleSortChronologically = () => {
+    const sorted = [...timeSlots].sort((a, b) => {
+      const [aHour, aMin] = a.startTime.split(':').map(Number);
+      const [bHour, bMin] = b.startTime.split(':').map(Number);
+      return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+    });
+    setTimeSlots(sorted);
+    toast({
+      title: "Success",
+      description: "Time slots sorted chronologically by start time.",
+    });
+  };
+
   const calculateTotalTime = () => {
     let totalMins = 0;
     timeSlots.forEach(slot => {
@@ -344,6 +424,29 @@ export default function DailyPlanner() {
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  if (!isStaffMode) {
+    return (
+      <div className="min-h-screen bg-dark-primary text-white flex items-center justify-center">
+        <Card className="bg-dark-secondary border-gray-700 max-w-md w-full mx-4">
+          <CardContent className="p-12 text-center">
+            <div className="w-24 h-24 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="h-12 w-12 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-3">Premium Feature Locked</h2>
+            <p className="text-gray-400 mb-6">
+              ChronoPlan is a premium feature that requires staff access. Enter staff mode to unlock this powerful daily planning tool.
+            </p>
+            <p className="text-sm text-gray-500">
+              Use the staff access button in the sidebar to enter the correct passcode.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -454,14 +557,26 @@ export default function DailyPlanner() {
               data-testid="input-select-date"
             />
           </div>
-          <Button
-            variant="outline"
-            className="border-gray-600 hover:bg-dark-tertiary"
-            data-testid="button-copy-day"
-          >
-            <Copy className="h-4 w-4 mr-2" />
-            Copy to Another Day
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="border-gray-600 hover:bg-dark-tertiary"
+              onClick={handleSortChronologically}
+              data-testid="button-sort-chronologically"
+            >
+              <ArrowUpDown className="h-4 w-4 mr-2" />
+              Sort Chronologically
+            </Button>
+            <Button
+              variant="outline"
+              className="border-gray-600 hover:bg-dark-tertiary"
+              onClick={() => setShowCopyModal(true)}
+              data-testid="button-copy-day"
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Copy to Another Day
+            </Button>
+          </div>
         </div>
 
         {/* Time Slots List */}
@@ -614,6 +729,55 @@ export default function DailyPlanner() {
                 className="flex-1 border-gray-600 text-gray-300 hover:bg-dark-tertiary"
                 onClick={() => setShowAddEditModal(false)}
                 data-testid="button-cancel-slot"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Copy to Another Day Modal */}
+      <Dialog open={showCopyModal} onOpenChange={setShowCopyModal}>
+        <DialogContent className="bg-dark-secondary border-gray-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Copy to Another Day</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Select a date to copy all {timeSlots.length} time slot(s) from {format(new Date(selectedDate), 'MMM d, yyyy')}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="copyToDate" className="text-white">Select Date *</Label>
+              <Input
+                id="copyToDate"
+                type="date"
+                value={copyToDate}
+                onChange={(e) => setCopyToDate(e.target.value)}
+                min={format(new Date(), 'yyyy-MM-dd')}
+                className="bg-dark-tertiary border-gray-600 text-white mt-1"
+                data-testid="input-copy-to-date"
+              />
+            </div>
+
+            <div className="flex space-x-3 pt-4">
+              <Button
+                onClick={handleCopyToDay}
+                className="flex-1 bg-primary-500 hover:bg-primary-600 text-white"
+                data-testid="button-confirm-copy"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Time Slots
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 border-gray-600 text-gray-300 hover:bg-dark-tertiary"
+                onClick={() => {
+                  setShowCopyModal(false);
+                  setCopyToDate('');
+                }}
+                data-testid="button-cancel-copy"
               >
                 Cancel
               </Button>

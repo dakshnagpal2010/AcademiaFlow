@@ -31,30 +31,39 @@ export default function CalendarNoteModal({
   const queryClient = useQueryClient();
   const [note, setNote] = useState("");
 
-  // Reset note when modal opens/closes or date changes
+  const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : '';
+
+  // Fetch existing note for the selected date
+  const { data: existingNote } = useQuery({
+    queryKey: [`/api/calendar-notes/${dateStr}`],
+    enabled: open && !!selectedDate && !!dateStr,
+  });
+
+  // Set note when existing note is loaded
   useEffect(() => {
-    if (open && selectedDate) {
-      // In a real implementation, you'd fetch existing notes for this date
-      setNote("");
-    } else {
+    if (existingNote && open) {
+      setNote(existingNote.note || "");
+    } else if (open && selectedDate) {
       setNote("");
     }
-  }, [open, selectedDate]);
+  }, [existingNote, open, selectedDate]);
 
   const saveNoteMutation = useMutation({
     mutationFn: async (data: { date: string; note: string }) => {
-      // This would save to a calendar_notes table in a real implementation
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-      return data;
+      return await apiRequest('/api/calendar-notes', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      });
     },
     onSuccess: () => {
       toast({
         title: "Note Saved",
         description: "Your calendar note has been saved successfully!",
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/calendar-notes'] });
       onOpenChange(false);
       setNote("");
-      // In a real implementation, you'd invalidate calendar notes query
     },
     onError: () => {
       toast({

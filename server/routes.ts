@@ -8,6 +8,8 @@ import {
   updateUserSchema,
   updateClassSchema,
   updateAssignmentSchema,
+  insertCalendarNoteSchema,
+  updateCalendarNoteSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -347,6 +349,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching notifications:", error);
       res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  // Calendar notes routes
+  app.get('/api/calendar-notes', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const notes = await storage.getCalendarNotes(userId);
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching calendar notes:", error);
+      res.status(500).json({ message: "Failed to fetch calendar notes" });
+    }
+  });
+
+  app.get('/api/calendar-notes/:date', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const { date } = req.params;
+      const note = await storage.getCalendarNoteByDate(userId, date);
+      res.json(note || null);
+    } catch (error) {
+      console.error("Error fetching calendar note:", error);
+      res.status(500).json({ message: "Failed to fetch calendar note" });
+    }
+  });
+
+  app.post('/api/calendar-notes', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const noteData = insertCalendarNoteSchema.parse({ ...req.body, userId });
+      
+      // Check if note already exists for this date
+      const existingNote = await storage.getCalendarNoteByDate(userId, noteData.date);
+      if (existingNote) {
+        // Update existing note
+        const updatedNote = await storage.updateCalendarNote(existingNote.id, { note: noteData.note });
+        res.json(updatedNote);
+      } else {
+        // Create new note
+        const newNote = await storage.createCalendarNote(noteData);
+        res.json(newNote);
+      }
+    } catch (error) {
+      console.error("Error saving calendar note:", error);
+      res.status(500).json({ message: "Failed to save calendar note" });
+    }
+  });
+
+  app.patch('/api/calendar-notes/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateCalendarNoteSchema.parse(req.body);
+      const updatedNote = await storage.updateCalendarNote(id, updates);
+      res.json(updatedNote);
+    } catch (error) {
+      console.error("Error updating calendar note:", error);
+      res.status(500).json({ message: "Failed to update calendar note" });
+    }
+  });
+
+  app.delete('/api/calendar-notes/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteCalendarNote(id);
+      res.json({ message: "Calendar note deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting calendar note:", error);
+      res.status(500).json({ message: "Failed to delete calendar note" });
     }
   });
 
