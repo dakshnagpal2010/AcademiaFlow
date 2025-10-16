@@ -20,7 +20,8 @@ import {
   X,
   Shield,
   Clock,
-  Sparkles
+  Sparkles,
+  Layers
 } from "lucide-react";
 import ProfileCustomizationModal from "./profile-customization-modal";
 import PremiumUpgradeModal from "./premium-upgrade-modal";
@@ -140,6 +141,22 @@ export default function Sidebar() {
                 </Link>
               );
             })}
+            
+            {/* Plans */}
+            <Link href="/plans">
+              <div
+                className={`flex items-center justify-center lg:justify-start lg:space-x-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+                  isActive("/plans")
+                    ? "bg-primary-500 text-white"
+                    : "text-gray-300 hover:bg-dark-tertiary hover:text-white"
+                }`}
+                data-testid="nav-plans"
+                title="Plans"
+              >
+                <Layers className="h-5 w-5" />
+                <span className="hidden lg:block">Plans</span>
+              </div>
+            </Link>
             
             {/* Daily Planner - ChronoPlan */}
             <Link href="/daily-planner">

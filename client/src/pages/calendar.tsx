@@ -154,9 +154,54 @@ export default function Calendar() {
 
   const getAssignmentsForDate = (date: Date) => {
     if (!assignments) return [];
+    
     return assignments.filter((assignment: any) => {
       if (!assignment.dueDate) return false;
-      return isSameDay(parseISO(assignment.dueDate), date);
+      
+      const dueDate = parseISO(assignment.dueDate);
+      
+      // Check if assignment repeats
+      if (!assignment.repeatPattern || assignment.repeatPattern === "none") {
+        // No repeat - just check if it's the same day
+        return isSameDay(dueDate, date);
+      }
+      
+      // Check if date is before the original due date
+      if (date < dueDate) return false;
+      
+      // Check if repeat has ended
+      if (assignment.repeatUntil && date > parseISO(assignment.repeatUntil)) {
+        return false;
+      }
+      
+      // Handle different repeat patterns
+      switch (assignment.repeatPattern) {
+        case "daily":
+          return true; // Show every day after due date
+          
+        case "weekly": {
+          // Check if it's the same day of week
+          if (assignment.repeatDays) {
+            const repeatDays = JSON.parse(assignment.repeatDays);
+            const dayOfWeek = date.getDay();
+            return repeatDays.includes(dayOfWeek);
+          }
+          // Fallback: repeat on the same day of week as due date
+          return date.getDay() === dueDate.getDay();
+        }
+        
+        case "monthly":
+          // Same day of month
+          return date.getDate() === dueDate.getDate();
+          
+        case "yearly":
+          // Same day and month
+          return date.getDate() === dueDate.getDate() && 
+                 date.getMonth() === dueDate.getMonth();
+          
+        default:
+          return isSameDay(dueDate, date);
+      }
     });
   };
 
@@ -357,6 +402,13 @@ export default function Calendar() {
                             {dayAssignments.slice(0, holiday ? 1 : 2).map((assignment: any) => {
                               const classInfo = getClassById(assignment.classId);
                               const eventColor = assignment.color || "#3b82f6";
+                              const tooltipText = [
+                                assignment.title,
+                                classInfo?.name ? `Class: ${classInfo.name}` : null,
+                                assignment.estimatedHours ? `Est. Time: ${assignment.estimatedHours}h` : null,
+                                assignment.description ? `Description: ${assignment.description}` : null,
+                              ].filter(Boolean).join('\n');
+                              
                               return (
                                 <div
                                   key={assignment.id}
@@ -365,10 +417,15 @@ export default function Calendar() {
                                     backgroundColor: `${eventColor}80`, // 50% opacity
                                     borderLeft: `3px solid ${eventColor}`
                                   }}
-                                  title={`${assignment.title} - ${classInfo?.name || 'No class'}`}
+                                  title={tooltipText}
                                   data-testid={`calendar-assignment-${assignment.id}`}
                                 >
-                                  {assignment.title}
+                                  <div className="flex items-center justify-between">
+                                    <span className="truncate">{assignment.title}</span>
+                                    {assignment.estimatedHours && (
+                                      <span className="ml-1 text-[10px] opacity-70">{assignment.estimatedHours}h</span>
+                                    )}
+                                  </div>
                                 </div>
                               );
                             })}
