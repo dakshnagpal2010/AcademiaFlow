@@ -34,7 +34,7 @@ export default function CalendarNoteModal({
   const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : '';
 
   // Fetch existing note for the selected date
-  const { data: existingNote } = useQuery({
+  const { data: existingNote } = useQuery<{ note: string } | null>({
     queryKey: [`/api/calendar-notes/${dateStr}`],
     enabled: open && !!selectedDate && !!dateStr,
   });
@@ -50,11 +50,7 @@ export default function CalendarNoteModal({
 
   const saveNoteMutation = useMutation({
     mutationFn: async (data: { date: string; note: string }) => {
-      return await apiRequest('/api/calendar-notes', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return await apiRequest('POST', '/api/calendar-notes', data);
     },
     onSuccess: () => {
       toast({
