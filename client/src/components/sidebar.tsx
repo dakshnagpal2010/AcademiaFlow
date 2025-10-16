@@ -174,17 +174,21 @@ export default function Sidebar() {
               </div>
             </Link>
 
-            {/* AI Assistant - Premium Feature */}
-            <button
-              onClick={() => setShowUpgradeModal(true)}
-              className="w-full flex items-center justify-center lg:justify-start lg:space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-dark-tertiary hover:text-white transition-colors relative premium-glow"
-              data-testid="nav-ai-assistant"
-              title="AI Assistant"
-            >
-              <Bot className="h-5 w-5" />
-              <span className="hidden lg:inline">AI Assistant</span>
-              {!isStaffMode && <Crown className="h-4 w-4 text-purple-400 absolute top-1 right-1 hidden lg:block" />}
-            </button>
+            {/* AI Assistant */}
+            <Link href="/ai-assistant">
+              <div
+                className={`flex items-center justify-center lg:justify-start lg:space-x-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+                  isActive("/ai-assistant")
+                    ? "bg-primary-500 text-white"
+                    : "text-gray-300 hover:bg-dark-tertiary hover:text-white"
+                }`}
+                data-testid="nav-ai-assistant"
+                title="AI Assistant"
+              >
+                <Bot className="h-5 w-5" />
+                <span className="hidden lg:block">AI Assistant</span>
+              </div>
+            </Link>
 
             {/* Settings */}
             <Link href="/settings">

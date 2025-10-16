@@ -19,6 +19,7 @@ import Calendar from "@/pages/calendar";
 import Plans from "@/pages/plans";
 import DailyPlanner from "@/pages/daily-planner";
 import Settings from "@/pages/settings";
+import AIAssistant from "@/pages/ai-assistant";
 import Sidebar from "@/components/sidebar";
 
 function AuthenticatedLayout() {
@@ -36,6 +37,7 @@ function AuthenticatedLayout() {
           <Route path="/calendar" component={Calendar} />
           <Route path="/plans" component={Plans} />
           <Route path="/daily-planner" component={DailyPlanner} />
+          <Route path="/ai-assistant" component={AIAssistant} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

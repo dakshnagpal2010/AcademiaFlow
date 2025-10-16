@@ -501,6 +501,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Assistant routes
+  app.post('/api/ai/chat', isAuthenticated, async (req: any, res) => {
+    try {
+      const { messages } = z.object({
+        messages: z.array(z.object({
+          role: z.enum(["user", "assistant", "system"]),
+          content: z.string()
+        }))
+      }).parse(req.body);
+
+      // Reference: blueprint:javascript_openai
+      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      // Note: User requested GPT-3.5, so using gpt-3.5-turbo instead of gpt-5
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful AI study assistant. You help students with their academic questions, provide study tips, explain concepts, and offer educational support. Be friendly, encouraging, and informative."
+          },
+          ...messages
+        ],
+        max_tokens: 500,
+      });
+
+      const assistantMessage = {
+        role: "assistant" as const,
+        content: completion.choices[0].message.content || "I'm sorry, I couldn't generate a response."
+      };
+
+      res.json({ message: assistantMessage });
+    } catch (error) {
+      console.error("Error in AI chat:", error);
+      res.status(500).json({ message: "Failed to get AI response" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
