@@ -1,0 +1,10 @@
+ Make sure the copy to another day works well and properly for ChronoPlan. 
+Move Schedule tab button below Calendar.
+Show estimated time to take for assignments as well as the assignment description.
+When user saves note on a calendar, it should save the note and if user clicks there again, it should be visible. If user clicks on a day with a holiday, it should expand and show popup with holiday name for 5 seconds with confetti moving and then go to the notes.
+Allow the user to pick what color they want to pick for the event and allow user to pick if it repeats.(like repeats daily, or what days of each week, or monthly, yearly, etc). This should show on calendar; if picked daily, event should show each day, if picked yearly it should show each year on that day, etc.). Show two events for each day maximum and a see more button to open a pop up showing the rest events scheduled that day. 
+Above the ChronoPlan, add a new tab button called “Plans” or find a good name that is for having multiple plans for various things. For example, I have a study plan, morning routine plan, evening workout plan, tennis warm-up plan etc. Users should be able to add many plans, edit them and have choices to choose from to customize them. It should also have many optional things user can fill in or use. Make it really nice, like super duper nice… Also, make sure all the buttons and everything works, there are no errors, and it looks pleasing. Find a simple, professional, good name or use plan. (maybe js use a name unless plan is the only good name). 
+Make ChronoPlan a premium feature and keep it locked until entered staff mode using the correct passcode which is “unlock12345” which is case sensitive. Once staff mode is entered, it should be usable and keep progress and data from last time. 
+Add a sort feature in ChronoPlan that user can use to click one time to move to chronological order, etc.
+
+Make sure that when a user saves template in ChronoPlan it actually saves data and stuff they changed so even if user logs out and back in, its still there.
