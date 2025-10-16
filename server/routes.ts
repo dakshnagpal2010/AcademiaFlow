@@ -12,6 +12,8 @@ import {
   updateCalendarNoteSchema,
   insertChronoPlanSchema,
   updateChronoPlanSchema,
+  insertChronoTimeSlotSchema,
+  updateChronoTimeSlotSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -246,7 +248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.userId;
-      const notifications = [];
+      const notifications: any[] = [];
       
       // Get all assignments and classes
       const assignments = await storage.getAssignments(userId);
@@ -498,6 +500,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting plan:", error);
       res.status(500).json({ message: "Failed to delete plan" });
+    }
+  });
+
+  // ChronoPlan Time Slots routes
+  app.get('/api/chrono-slots', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const { date } = req.query;
+      const slots = await storage.getChronoTimeSlots(userId, date as string | undefined);
+      res.json(slots);
+    } catch (error) {
+      console.error("Error fetching chrono time slots:", error);
+      res.status(500).json({ message: "Failed to fetch time slots" });
+    }
+  });
+
+  app.post('/api/chrono-slots', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const slotData = insertChronoTimeSlotSchema.parse({ ...req.body, userId });
+      const newSlot = await storage.createChronoTimeSlot(slotData);
+      res.json(newSlot);
+    } catch (error) {
+      console.error("Error creating chrono time slot:", error);
+      res.status(500).json({ message: "Failed to create time slot" });
+    }
+  });
+
+  app.patch('/api/chrono-slots/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateChronoTimeSlotSchema.parse(req.body);
+      const updatedSlot = await storage.updateChronoTimeSlot(id, updates);
+      res.json(updatedSlot);
+    } catch (error) {
+      console.error("Error updating chrono time slot:", error);
+      res.status(500).json({ message: "Failed to update time slot" });
+    }
+  });
+
+  app.delete('/api/chrono-slots/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteChronoTimeSlot(id);
+      res.json({ message: "Time slot deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting chrono time slot:", error);
+      res.status(500).json({ message: "Failed to delete time slot" });
+    }
+  });
+
+  app.post('/api/chrono-slots/bulk', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const { slots } = z.object({
+        slots: z.array(insertChronoTimeSlotSchema)
+      }).parse(req.body);
+
+      const createdSlots = await Promise.all(
+        slots.map(slot => storage.createChronoTimeSlot({ ...slot, userId }))
+      );
+
+      res.json(createdSlots);
+    } catch (error) {
+      console.error("Error bulk creating chrono time slots:", error);
+      res.status(500).json({ message: "Failed to create time slots" });
+    }
+  });
+
+  app.post('/api/chrono-slots/reorder', isAuthenticated, async (req: any, res) => {
+    try {
+      const { slots } = z.object({
+        slots: z.array(z.object({
+          id: z.string(),
+          displayOrder: z.number()
+        }))
+      }).parse(req.body);
+
+      await Promise.all(
+        slots.map(({ id, displayOrder }) => 
+          storage.updateChronoTimeSlot(id, { displayOrder })
+        )
+      );
+
+      res.json({ message: "Time slots reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering chrono time slots:", error);
+      res.status(500).json({ message: "Failed to reorder time slots" });
     }
   });
 

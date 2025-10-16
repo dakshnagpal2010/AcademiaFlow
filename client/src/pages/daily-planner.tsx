@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useStaffMode } from "@/contexts/staff-mode-context";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +56,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { format } from "date-fns";
+import type { ChronoTimeSlot } from "@shared/schema";
 
 interface TimeSlot {
   id: string;
@@ -66,7 +69,7 @@ interface TimeSlot {
   priority?: 'high' | 'medium' | 'low';
 }
 
-function SortableTimeSlot({ slot, onEdit, onDelete }: { slot: TimeSlot; onEdit: (slot: TimeSlot) => void; onDelete: (id: string) => void }) {
+function SortableTimeSlot({ slot, onEdit, onDelete }: { slot: ChronoTimeSlot; onEdit: (slot: ChronoTimeSlot) => void; onDelete: (id: string) => void }) {
   const {
     attributes,
     listeners,
@@ -82,7 +85,7 @@ function SortableTimeSlot({ slot, onEdit, onDelete }: { slot: TimeSlot; onEdit: 
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category: string | null) => {
     switch (category) {
       case 'work': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       case 'personal': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
@@ -94,7 +97,7 @@ function SortableTimeSlot({ slot, onEdit, onDelete }: { slot: TimeSlot; onEdit: 
     }
   };
 
-  const getPriorityColor = (priority?: string) => {
+  const getPriorityColor = (priority?: string | null) => {
     switch (priority) {
       case 'high': return 'border-l-red-500';
       case 'medium': return 'border-l-yellow-500';
@@ -181,51 +184,13 @@ export default function DailyPlanner() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { isStaffMode } = useStaffMode();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(() => {
-    const defaultSlots = [
-      {
-        id: '1',
-        title: 'Morning Routine',
-        startTime: '07:00',
-        endTime: '08:00',
-        category: 'personal',
-        notes: 'Exercise, shower, breakfast',
-        priority: 'high'
-      },
-      {
-        id: '2',
-        title: 'Deep Work Session',
-        startTime: '09:00',
-        endTime: '11:00',
-        category: 'work',
-        notes: 'Focus on important projects',
-        priority: 'high'
-      },
-      {
-        id: '3',
-        title: 'Lunch Break',
-        startTime: '12:00',
-        endTime: '13:00',
-        category: 'break',
-        priority: 'medium'
-      }
-    ];
-    
-    // Load from localStorage if available
-    const storedPlans = localStorage.getItem('chronoplan-slots');
-    if (storedPlans) {
-      const plans = JSON.parse(storedPlans);
-      const today = format(new Date(), 'yyyy-MM-dd');
-      return plans[today] || defaultSlots;
-    }
-    return defaultSlots;
-  });
 
   const [showAddEditModal, setShowAddEditModal] = useState(false);
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [copyToDate, setCopyToDate] = useState('');
-  const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
+  const [editingSlot, setEditingSlot] = useState<ChronoTimeSlot | null>(null);
   const [formData, setFormData] = useState<Partial<TimeSlot>>({
     title: '',
     startTime: '',
@@ -255,17 +220,95 @@ export default function DailyPlanner() {
     }
   }, [isAuthenticated, authLoading, toast]);
 
-  // Load slots when date changes
-  useEffect(() => {
-    const storedPlans = localStorage.getItem('chronoplan-slots');
-    if (storedPlans) {
-      const plans = JSON.parse(storedPlans);
-      const dateSlots = plans[selectedDate];
-      if (dateSlots) {
-        setTimeSlots(dateSlots);
-      }
-    }
-  }, [selectedDate]);
+  // Fetch time slots for the selected date
+  const { data: timeSlots = [], isLoading: slotsLoading } = useQuery<ChronoTimeSlot[]>({
+    queryKey: ['/api/chrono-slots', selectedDate],
+    queryFn: async () => {
+      const response = await fetch(`/api/chrono-slots?date=${selectedDate}`);
+      if (!response.ok) throw new Error('Failed to fetch slots');
+      return response.json();
+    },
+    enabled: isAuthenticated && isStaffMode,
+  });
+
+  // Create slot mutation
+  const createSlotMutation = useMutation({
+    mutationFn: async (data: Partial<TimeSlot>) => {
+      return await apiRequest('POST', '/api/chrono-slots', {
+        ...data,
+        date: selectedDate,
+        displayOrder: timeSlots.length,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chrono-slots', selectedDate] });
+      toast({
+        title: "Success",
+        description: "Time slot added successfully!",
+      });
+      setShowAddEditModal(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create time slot. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update slot mutation
+  const updateSlotMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<TimeSlot> }) => {
+      return await apiRequest('PATCH', `/api/chrono-slots/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chrono-slots', selectedDate] });
+      toast({
+        title: "Success",
+        description: "Time slot updated successfully!",
+      });
+      setShowAddEditModal(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update time slot. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete slot mutation
+  const deleteSlotMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest('DELETE', `/api/chrono-slots/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chrono-slots', selectedDate] });
+      toast({
+        title: "Success",
+        description: "Time slot deleted successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete time slot. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Reorder slots mutation
+  const reorderSlotsMutation = useMutation({
+    mutationFn: async (slots: { id: string; displayOrder: number }[]) => {
+      return await apiRequest('POST', '/api/chrono-slots/reorder', { slots });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chrono-slots', selectedDate] });
+    },
+  });
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -273,7 +316,14 @@ export default function DailyPlanner() {
     if (over && active.id !== over.id) {
       const oldIndex = timeSlots.findIndex((slot) => slot.id === active.id);
       const newIndex = timeSlots.findIndex((slot) => slot.id === over.id);
-      setTimeSlots(arrayMove(timeSlots, oldIndex, newIndex));
+      const reorderedSlots = arrayMove(timeSlots, oldIndex, newIndex);
+      
+      // Update display order
+      const updates = reorderedSlots.map((slot, index) => ({
+        id: slot.id,
+        displayOrder: index
+      }));
+      reorderSlotsMutation.mutate(updates);
     }
   };
 
@@ -290,19 +340,22 @@ export default function DailyPlanner() {
     setShowAddEditModal(true);
   };
 
-  const handleEditSlot = (slot: TimeSlot) => {
+  const handleEditSlot = (slot: ChronoTimeSlot) => {
     setEditingSlot(slot);
-    setFormData(slot);
+    setFormData({
+      title: slot.title,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      category: slot.category as any,
+      notes: slot.notes || '',
+      priority: slot.priority as any,
+    });
     setShowAddEditModal(true);
   };
 
   const handleDeleteSlot = (id: string) => {
     if (window.confirm("Are you sure you want to delete this time slot?")) {
-      setTimeSlots(timeSlots.filter(slot => slot.id !== id));
-      toast({
-        title: "Success",
-        description: "Time slot deleted successfully!",
-      });
+      deleteSlotMutation.mutate(id);
     }
   };
 
@@ -317,25 +370,13 @@ export default function DailyPlanner() {
     }
 
     if (editingSlot) {
-      setTimeSlots(timeSlots.map(slot => 
-        slot.id === editingSlot.id ? { ...formData, id: slot.id } as TimeSlot : slot
-      ));
-      toast({
-        title: "Success",
-        description: "Time slot updated successfully!",
+      updateSlotMutation.mutate({
+        id: editingSlot.id,
+        data: formData
       });
     } else {
-      const newSlot: TimeSlot = {
-        ...formData,
-        id: Date.now().toString(),
-      } as TimeSlot;
-      setTimeSlots([...timeSlots, newSlot]);
-      toast({
-        title: "Success",
-        description: "Time slot added successfully!",
-      });
+      createSlotMutation.mutate(formData);
     }
-    setShowAddEditModal(false);
   };
 
   const handleSaveAsTemplate = () => {
@@ -344,6 +385,41 @@ export default function DailyPlanner() {
       description: "Your daily plan has been saved as a template!",
     });
   };
+
+  // Copy slots to another date
+  const copySlotsMutation = useMutation({
+    mutationFn: async ({ slots, targetDate }: { slots: ChronoTimeSlot[]; targetDate: string }) => {
+      const slotsToCreate = slots.map((slot, index) => ({
+        title: slot.title,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        category: slot.category,
+        notes: slot.notes,
+        priority: slot.priority,
+        color: slot.color,
+        date: targetDate,
+        displayOrder: index,
+      }));
+
+      return await apiRequest('POST', '/api/chrono-slots/bulk', { slots: slotsToCreate });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chrono-slots'] });
+      toast({
+        title: "Success",
+        description: `Successfully copied ${variables.slots.length} time slot(s) to ${format(new Date(variables.targetDate), 'MMM d, yyyy')}`,
+      });
+      setShowCopyModal(false);
+      setCopyToDate('');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to copy time slots. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleCopyToDay = () => {
     if (!copyToDate) {
@@ -364,24 +440,10 @@ export default function DailyPlanner() {
       return;
     }
 
-    // Create copies of time slots with new IDs for the target date
-    const copiedSlots = timeSlots.map(slot => ({
-      ...slot,
-      id: `${Date.now()}-${Math.random()}`, // Generate unique ID
-    }));
-
-    // Store copied slots in localStorage keyed by date
-    const storedPlans = localStorage.getItem('chronoplan-slots') || '{}';
-    const plans = JSON.parse(storedPlans);
-    plans[copyToDate] = copiedSlots;
-    localStorage.setItem('chronoplan-slots', JSON.stringify(plans));
-
-    toast({
-      title: "Success",
-      description: `Successfully copied ${timeSlots.length} time slot(s) to ${format(new Date(copyToDate), 'MMM d, yyyy')}`,
+    copySlotsMutation.mutate({
+      slots: timeSlots,
+      targetDate: copyToDate
     });
-    setShowCopyModal(false);
-    setCopyToDate('');
   };
 
   const handleSortChronologically = () => {
@@ -390,7 +452,14 @@ export default function DailyPlanner() {
       const [bHour, bMin] = b.startTime.split(':').map(Number);
       return (aHour * 60 + aMin) - (bHour * 60 + bMin);
     });
-    setTimeSlots(sorted);
+    
+    // Update display order in database
+    const updates = sorted.map((slot, index) => ({
+      id: slot.id,
+      displayOrder: index
+    }));
+    reorderSlotsMutation.mutate(updates);
+    
     toast({
       title: "Success",
       description: "Time slots sorted chronologically by start time.",
