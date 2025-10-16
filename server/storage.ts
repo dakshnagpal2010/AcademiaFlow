@@ -4,6 +4,8 @@ import {
   assignments,
   activities,
   calendarNotes,
+  chronoPlans,
+  chronoTimeSlots,
   type User,
   type UpsertUser,
   type Class,
@@ -18,6 +20,12 @@ import {
   type CalendarNote,
   type InsertCalendarNote,
   type UpdateCalendarNote,
+  type ChronoPlan,
+  type InsertChronoPlan,
+  type UpdateChronoPlan,
+  type ChronoTimeSlot,
+  type InsertChronoTimeSlot,
+  type UpdateChronoTimeSlot,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, or, asc } from "drizzle-orm";
@@ -57,6 +65,20 @@ export interface IStorage {
   createCalendarNote(noteData: InsertCalendarNote): Promise<CalendarNote>;
   updateCalendarNote(id: string, updates: UpdateCalendarNote): Promise<CalendarNote>;
   deleteCalendarNote(id: string): Promise<void>;
+
+  // ChronoPlan operations
+  getChronoPlans(userId: string): Promise<ChronoPlan[]>;
+  getChronoPlan(id: string): Promise<ChronoPlan | undefined>;
+  createChronoPlan(planData: InsertChronoPlan): Promise<ChronoPlan>;
+  updateChronoPlan(id: string, updates: UpdateChronoPlan): Promise<ChronoPlan>;
+  deleteChronoPlan(id: string): Promise<void>;
+
+  // ChronoTimeSlot operations
+  getChronoTimeSlots(userId: string, date?: string): Promise<ChronoTimeSlot[]>;
+  getChronoTimeSlot(id: string): Promise<ChronoTimeSlot | undefined>;
+  createChronoTimeSlot(slotData: InsertChronoTimeSlot): Promise<ChronoTimeSlot>;
+  updateChronoTimeSlot(id: string, updates: UpdateChronoTimeSlot): Promise<ChronoTimeSlot>;
+  deleteChronoTimeSlot(id: string): Promise<void>;
 
   // Dashboard stats
   getDashboardStats(userId: string): Promise<{
@@ -367,6 +389,77 @@ export class DatabaseStorage implements IStorage {
       completedToday: completedTodayCount.count,
       studyStreak,
     };
+  }
+
+  // ChronoPlan operations
+  async getChronoPlans(userId: string): Promise<ChronoPlan[]> {
+    return await db
+      .select()
+      .from(chronoPlans)
+      .where(eq(chronoPlans.userId, userId))
+      .orderBy(desc(chronoPlans.createdAt));
+  }
+
+  async getChronoPlan(id: string): Promise<ChronoPlan | undefined> {
+    const [plan] = await db.select().from(chronoPlans).where(eq(chronoPlans.id, id));
+    return plan;
+  }
+
+  async createChronoPlan(planData: InsertChronoPlan): Promise<ChronoPlan> {
+    const [newPlan] = await db.insert(chronoPlans).values(planData).returning();
+    return newPlan;
+  }
+
+  async updateChronoPlan(id: string, updates: UpdateChronoPlan): Promise<ChronoPlan> {
+    const [updatedPlan] = await db
+      .update(chronoPlans)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(chronoPlans.id, id))
+      .returning();
+    return updatedPlan;
+  }
+
+  async deleteChronoPlan(id: string): Promise<void> {
+    await db.delete(chronoPlans).where(eq(chronoPlans.id, id));
+  }
+
+  // ChronoTimeSlot operations
+  async getChronoTimeSlots(userId: string, date?: string): Promise<ChronoTimeSlot[]> {
+    if (date) {
+      return await db
+        .select()
+        .from(chronoTimeSlots)
+        .where(and(eq(chronoTimeSlots.userId, userId), eq(chronoTimeSlots.date, date)))
+        .orderBy(asc(chronoTimeSlots.displayOrder), asc(chronoTimeSlots.startTime));
+    }
+    return await db
+      .select()
+      .from(chronoTimeSlots)
+      .where(eq(chronoTimeSlots.userId, userId))
+      .orderBy(desc(chronoTimeSlots.date), asc(chronoTimeSlots.displayOrder));
+  }
+
+  async getChronoTimeSlot(id: string): Promise<ChronoTimeSlot | undefined> {
+    const [slot] = await db.select().from(chronoTimeSlots).where(eq(chronoTimeSlots.id, id));
+    return slot;
+  }
+
+  async createChronoTimeSlot(slotData: InsertChronoTimeSlot): Promise<ChronoTimeSlot> {
+    const [newSlot] = await db.insert(chronoTimeSlots).values(slotData).returning();
+    return newSlot;
+  }
+
+  async updateChronoTimeSlot(id: string, updates: UpdateChronoTimeSlot): Promise<ChronoTimeSlot> {
+    const [updatedSlot] = await db
+      .update(chronoTimeSlots)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(chronoTimeSlots.id, id))
+      .returning();
+    return updatedSlot;
+  }
+
+  async deleteChronoTimeSlot(id: string): Promise<void> {
+    await db.delete(chronoTimeSlots).where(eq(chronoTimeSlots.id, id));
   }
 }
 
