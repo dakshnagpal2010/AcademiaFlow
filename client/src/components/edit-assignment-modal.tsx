@@ -15,6 +15,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import {
   Select,
@@ -25,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2, Palette, Repeat } from "lucide-react";
 import { format } from "date-fns";
 
 interface EditAssignmentModalProps {
@@ -56,6 +58,11 @@ export default function EditAssignmentModal({
 
   const assignment = Array.isArray(assignments) ? assignments.find((a: any) => a.id === assignmentId) : undefined;
 
+  const [color, setColor] = useState("#3b82f6");
+  const [repeatPattern, setRepeatPattern] = useState("none");
+  const [repeatDays, setRepeatDays] = useState<number[]>([]);
+  const [repeatUntil, setRepeatUntil] = useState<Date | undefined>(undefined);
+
   const form = useForm<UpdateAssignment>({
     resolver: zodResolver(updateAssignmentSchema),
     defaultValues: {
@@ -79,6 +86,10 @@ export default function EditAssignmentModal({
         estimatedHours: assignment.estimatedHours ? String(assignment.estimatedHours) : "",
         dueDate: assignment.dueDate ? new Date(assignment.dueDate) : undefined,
       });
+      setColor(assignment.color || "#3b82f6");
+      setRepeatPattern(assignment.repeatPattern || "none");
+      setRepeatDays(assignment.repeatDays ? JSON.parse(assignment.repeatDays) : []);
+      setRepeatUntil(assignment.repeatUntil ? new Date(assignment.repeatUntil) : undefined);
     }
   }, [assignment, form]);
 
@@ -90,6 +101,10 @@ export default function EditAssignmentModal({
         ...data,
         classId: data.classId === "none" ? null : data.classId,
         estimatedHours: data.estimatedHours ? Number(data.estimatedHours) : undefined,
+        color,
+        repeatPattern: repeatPattern === "none" ? null : repeatPattern,
+        repeatDays: repeatPattern === "weekly" ? JSON.stringify(repeatDays) : null,
+        repeatUntil: repeatPattern !== "none" ? repeatUntil : null,
       };
 
       await apiRequest("PATCH", `/api/assignments/${assignmentId}`, updateData);
@@ -288,6 +303,111 @@ export default function EditAssignmentModal({
                 </FormItem>
               )}
             />
+
+            {/* Color Picker */}
+            <div>
+              <Label className="text-white">Event Color</Label>
+              <div className="flex items-center space-x-3 mt-2">
+                <Palette className="h-4 w-4 text-gray-400" />
+                <div className="flex space-x-2 flex-wrap">
+                  {[
+                    "#3b82f6", "#ef4444", "#10b981", "#f59e0b", 
+                    "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16",
+                    "#f97316", "#6366f1", "#14b8a6", "#eab308"
+                  ].map((colorOption) => (
+                    <button
+                      key={colorOption}
+                      type="button"
+                      className={`w-8 h-8 rounded-full border-2 ${
+                        color === colorOption ? "border-white" : "border-gray-600"
+                      }`}
+                      style={{ backgroundColor: colorOption }}
+                      onClick={() => setColor(colorOption)}
+                      data-testid={`edit-color-option-${colorOption}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Repeat Pattern */}
+            <div>
+              <Label className="text-white">Repeat Pattern</Label>
+              <Select
+                value={repeatPattern}
+                onValueChange={(value) => {
+                  setRepeatPattern(value);
+                  setRepeatDays([]);
+                }}
+              >
+                <SelectTrigger className="bg-dark-tertiary border-gray-600 text-white mt-1" data-testid="select-edit-repeat-pattern">
+                  <Repeat className="mr-2 h-4 w-4" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-dark-tertiary border-gray-600">
+                  <SelectItem value="none">No Repeat</SelectItem>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Weekly Repeat Days */}
+            {repeatPattern === "weekly" && (
+              <div>
+                <Label className="text-white">Repeat on Days</Label>
+                <div className="grid grid-cols-7 gap-2 mt-2">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
+                    <div key={day} className="flex items-center">
+                      <Checkbox
+                        checked={repeatDays.includes(index)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setRepeatDays([...repeatDays, index].sort());
+                          } else {
+                            setRepeatDays(repeatDays.filter(d => d !== index));
+                          }
+                        }}
+                        className="mr-1"
+                        data-testid={`edit-checkbox-day-${index}`}
+                      />
+                      <Label className="text-xs text-gray-300">{day}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Repeat Until */}
+            {repeatPattern !== "none" && (
+              <div>
+                <Label className="text-white">Repeat Until (Optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left bg-dark-tertiary border-gray-600 text-white hover:bg-dark-secondary mt-1"
+                      data-testid="button-edit-repeat-until"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {repeatUntil ? format(repeatUntil, "PPP") : "Select end date (optional)"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-dark-tertiary border-gray-600" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={repeatUntil}
+                      onSelect={(date) => setRepeatUntil(date)}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className="text-white"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
 
             <div className="flex space-x-3 pt-4">
               <Button

@@ -10,6 +10,8 @@ import {
   updateAssignmentSchema,
   insertCalendarNoteSchema,
   updateCalendarNoteSchema,
+  insertChronoPlanSchema,
+  updateChronoPlanSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -418,6 +420,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting calendar note:", error);
       res.status(500).json({ message: "Failed to delete calendar note" });
+    }
+  });
+
+  // Chrono Plans routes
+  app.get('/api/plans', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const plans = await storage.getChronoPlans(userId);
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+      res.status(500).json({ message: "Failed to fetch plans" });
+    }
+  });
+
+  app.get('/api/plans/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const plan = await storage.getChronoPlan(id);
+      res.json(plan);
+    } catch (error) {
+      console.error("Error fetching plan:", error);
+      res.status(500).json({ message: "Failed to fetch plan" });
+    }
+  });
+
+  app.post('/api/plans', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const planData = insertChronoPlanSchema.parse({ ...req.body, userId });
+      const newPlan = await storage.createChronoPlan(planData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId,
+        type: 'plan_created',
+        description: `Created new plan: ${newPlan.name}`,
+        metadata: { planId: newPlan.id },
+      });
+      
+      res.json(newPlan);
+    } catch (error) {
+      console.error("Error creating plan:", error);
+      res.status(500).json({ message: "Failed to create plan" });
+    }
+  });
+
+  app.patch('/api/plans/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateChronoPlanSchema.parse(req.body);
+      const updatedPlan = await storage.updateChronoPlan(id, updates);
+      res.json(updatedPlan);
+    } catch (error) {
+      console.error("Error updating plan:", error);
+      res.status(500).json({ message: "Failed to update plan" });
+    }
+  });
+
+  app.delete('/api/plans/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      
+      const plan = await storage.getChronoPlan(id);
+      await storage.deleteChronoPlan(id);
+      
+      // Log activity
+      await storage.createActivity({
+        userId,
+        type: 'plan_deleted',
+        description: `Deleted plan: ${plan?.name || 'Unknown'}`,
+      });
+      
+      res.json({ message: "Plan deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting plan:", error);
+      res.status(500).json({ message: "Failed to delete plan" });
     }
   });
 
