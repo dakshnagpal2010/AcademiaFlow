@@ -20,6 +20,7 @@ import {
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, parseISO, getDay } from "date-fns";
 import AddHomeworkModal from "@/components/add-homework-modal";
 import CalendarNoteModal from "@/components/calendar-note-modal";
+import HolidayPopupModal from "@/components/holiday-popup-modal";
 
 // Calculate holidays for any year
 const getHolidaysForYear = (year: number) => {
@@ -86,6 +87,8 @@ export default function Calendar() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showDayEventsModal, setShowDayEventsModal] = useState(false);
+  const [showHolidayPopup, setShowHolidayPopup] = useState(false);
+  const [selectedHoliday, setSelectedHoliday] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showHolidays, setShowHolidays] = useState(() => {
@@ -318,7 +321,12 @@ export default function Calendar() {
                           onClick={() => {
                             if (isCurrentMonth) {
                               setSelectedDate(date);
-                              setShowNoteModal(true);
+                              if (holiday) {
+                                setSelectedHoliday(holiday.name);
+                                setShowHolidayPopup(true);
+                              } else {
+                                setShowNoteModal(true);
+                              }
                             }
                           }}
                         >
@@ -527,6 +535,14 @@ export default function Calendar() {
         selectedDate={selectedDate}
       />
 
+      {/* Holiday Popup Modal */}
+      <HolidayPopupModal 
+        open={showHolidayPopup} 
+        onOpenChange={setShowHolidayPopup}
+        holidayName={selectedHoliday}
+        onComplete={() => setShowNoteModal(true)}
+      />
+
       {/* Day Events Modal */}
       {showDayEventsModal && selectedDate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowDayEventsModal(false)}>
@@ -575,6 +591,12 @@ export default function Calendar() {
                         <h4 className="font-medium text-white">{assignment.title}</h4>
                         {classInfo && (
                           <p className="text-sm text-gray-400 mt-1">{classInfo.name}</p>
+                        )}
+                        {assignment.estimatedHours && (
+                          <div className="flex items-center text-sm text-blue-400 mt-1">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Estimated: {assignment.estimatedHours} hour{assignment.estimatedHours !== 1 ? 's' : ''}
+                          </div>
                         )}
                         {assignment.description && (
                           <p className="text-sm text-gray-300 mt-2">{assignment.description}</p>

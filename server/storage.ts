@@ -3,6 +3,7 @@ import {
   classes,
   assignments,
   activities,
+  calendarNotes,
   type User,
   type UpsertUser,
   type Class,
@@ -14,6 +15,9 @@ import {
   type Activity,
   type InsertActivity,
   type UpdateUser,
+  type CalendarNote,
+  type InsertCalendarNote,
+  type UpdateCalendarNote,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, or, asc } from "drizzle-orm";
@@ -46,6 +50,13 @@ export interface IStorage {
   // Activity operations
   getActivities(userId: string, limit?: number): Promise<Activity[]>;
   createActivity(activityData: InsertActivity): Promise<Activity>;
+
+  // Calendar notes operations
+  getCalendarNotes(userId: string): Promise<CalendarNote[]>;
+  getCalendarNoteByDate(userId: string, date: string): Promise<CalendarNote | undefined>;
+  createCalendarNote(noteData: InsertCalendarNote): Promise<CalendarNote>;
+  updateCalendarNote(id: string, updates: UpdateCalendarNote): Promise<CalendarNote>;
+  deleteCalendarNote(id: string): Promise<void>;
 
   // Dashboard stats
   getDashboardStats(userId: string): Promise<{
@@ -221,6 +232,49 @@ export class DatabaseStorage implements IStorage {
       .values(activityData)
       .returning();
     return newActivity;
+  }
+
+  // Calendar notes operations
+  async getCalendarNotes(userId: string): Promise<CalendarNote[]> {
+    return await db
+      .select()
+      .from(calendarNotes)
+      .where(eq(calendarNotes.userId, userId))
+      .orderBy(desc(calendarNotes.date));
+  }
+
+  async getCalendarNoteByDate(userId: string, date: string): Promise<CalendarNote | undefined> {
+    const [note] = await db
+      .select()
+      .from(calendarNotes)
+      .where(
+        and(
+          eq(calendarNotes.userId, userId),
+          eq(calendarNotes.date, date)
+        )
+      );
+    return note;
+  }
+
+  async createCalendarNote(noteData: InsertCalendarNote): Promise<CalendarNote> {
+    const [newNote] = await db
+      .insert(calendarNotes)
+      .values(noteData)
+      .returning();
+    return newNote;
+  }
+
+  async updateCalendarNote(id: string, updates: UpdateCalendarNote): Promise<CalendarNote> {
+    const [updatedNote] = await db
+      .update(calendarNotes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(calendarNotes.id, id))
+      .returning();
+    return updatedNote;
+  }
+
+  async deleteCalendarNote(id: string): Promise<void> {
+    await db.delete(calendarNotes).where(eq(calendarNotes.id, id));
   }
 
   // Dashboard stats
