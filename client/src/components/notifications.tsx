@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Bell, Check, X, Clock, BookOpen, AlertTriangle, RefreshCw } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Popover,
   PopoverContent,
@@ -84,14 +85,34 @@ export default function NotificationsPopover() {
     }
   };
 
+  const markAsReadMutation = useMutation({
+    mutationFn: async (notificationId: string) => {
+      const response = await apiRequest("PATCH", `/api/notifications/${notificationId}/read`);
+      if (response.status === 204) return;
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    },
+  });
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("PATCH", "/api/notifications/mark-all-read");
+      if (response.status === 204) return;
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    },
+  });
+
   const markAsRead = (notificationId: string) => {
-    // In a real app, this would make an API call to mark as read
-    console.log("Marking notification as read:", notificationId);
+    markAsReadMutation.mutate(notificationId);
   };
 
   const markAllAsRead = () => {
-    // In a real app, this would make an API call to mark all as read
-    console.log("Marking all notifications as read");
+    markAllAsReadMutation.mutate();
   };
 
   const handleReload = async () => {
