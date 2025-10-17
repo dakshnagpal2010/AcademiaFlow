@@ -1,0 +1,26 @@
+Add many many more options when making a plan, not just descriptions. It should be like add a thing, pick a time slot, next thing, next time slot, etc. Also, have more and more features
+
+
+Save ChronoPlan daily schedule
+When making or editing a class, allow user to pick what their class’s gpa scale is out of, from NA to 5.0, 5.5, 6.0 as 5.0 is On Level class, while 5.5 is Pre-AP/Advanced Class and 6.0 classes are AP/Honors classes.
+Make a new tab button under classes that leads to a page called Grades, where user can add their grades and weight of the grade as default set to 100%. 
+Make a GPA Calculator that uses 5.0, 5.5, 6.0 to give a weighted GPA and an unweighted 4.0 GPA regardless of the type of class GPA-wise.
+Also when making or editing an assigment, allow the user to pick if it appears on the calendar.
+
+
+Also, in calendar, have a button for adding events that a user can click on to press any day which allows for a creation of an event instead of opening notes. If event is added, there should be a small symbol on the day representing event and user should get notifications one day before user's event.
+
+
+Make sure user can actually mark notifications as read individually and the mark all as read button actually works.
+Assignment creation works until I add a repeat till date and then it gives me an error message when trying to save.
+Add a 7 message montly limit on AI Messages which then locks until new month starts and when turned to pro increase limit to 50 per month. Messages for non-pro users should not reset when app is closed or tab is closed, it should save.
+After creating a plan, a user should be able to click and open it to add slots with times and names and stuff and also slots for just simple text as a note. For example, if I have a workout plan created, i should be able to click on it and then open a page where i can have like a list of the things i need to do with a slot where I can add detail like reps and in between 2 slots maybe i can add a note if i want to tell myself that I need to do the exercise in a specific way, etc. This is just an example, have everything for this and more.
+In chronoPlan, when its locked it says a buncha stuff. Instead of saying anything about a staff mode that its a premium feature and have a details button that opens the same popup opened when clicked upgrade to pro. Still, it should be available once entered staff mode but it should not say anything about staff mode having anything to do with ChronoPlan. 
+Add a box or whatever to show a limit for Plans that can be added. Lets do 3 plans at max, until entered staff mode, where it becomes unlimited. 
+In the premium details, change pricing to 6.99/Year instead of per month.
+In customize profile, instead of major, have school level where user can pick middle school and high school and college. If user picks middle school, then options for academic year automatically change to 6th 7th and 8th grade but if its high school or college, it can change to the ones now, which are Freshman, Sophomore, Junior, Senior, Graduate.
+Make sure in dashboard when clicked on view all button in upcoming assignemnents, it should open assignments page.
+In preferences, when Enable animations in turned off, it should remove the confetti animation from the calendar and just show the holiday popup. 
+When showing holiday popup, have a option to skip the five second wait.
+Add a breathing glow gradient around ChronoPlan and AI assistant to show that they are premium exclusive features. The glow should be like the one around AI study assistant preview in the dashboard.
+After picking a day to copy to, for ChronoPlan, when i press copy time slots it gives me an error.
