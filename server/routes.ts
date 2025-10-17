@@ -601,27 +601,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       }).parse(req.body);
 
-      // Reference: blueprint:javascript_openai
-      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-      // Note: User requested GPT-3.5, so using gpt-3.5-turbo instead of gpt-5
-      const OpenAI = (await import("openai")).default;
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      // Reference: blueprint:javascript_gemini
+      // Note that the newest Gemini model series is "gemini-2.5-flash" or gemini-2.5-pro"
+      const { GoogleGenAI } = await import("@google/genai");
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful AI study assistant. You help students with their academic questions, provide study tips, explain concepts, and offer educational support. Be friendly, encouraging, and informative."
-          },
-          ...messages
-        ],
-        max_tokens: 500,
+      const systemInstruction = "You are a helpful AI study assistant. You help students with their academic questions, provide study tips, explain concepts, and offer educational support. Be friendly, encouraging, and informative.";
+      
+      const conversationHistory = messages
+        .filter((msg: any) => msg.role !== "system")
+        .map((msg: any) => ({
+          role: msg.role === "assistant" ? "model" : "user",
+          parts: [{ text: msg.content }]
+        }));
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        config: {
+          systemInstruction: systemInstruction,
+        },
+        contents: conversationHistory,
       });
 
       const assistantMessage = {
         role: "assistant" as const,
-        content: completion.choices[0].message.content || "I'm sorry, I couldn't generate a response."
+        content: response.text || "I'm sorry, I couldn't generate a response."
       };
 
       res.json({ message: assistantMessage });
