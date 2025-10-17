@@ -623,9 +623,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contents: conversationHistory,
       });
 
+      const text = response.text;
+      
       const assistantMessage = {
         role: "assistant" as const,
-        content: response.text || "I'm sorry, I couldn't generate a response."
+        content: text || "I'm sorry, I couldn't generate a response."
       };
 
       res.json({ message: assistantMessage });
