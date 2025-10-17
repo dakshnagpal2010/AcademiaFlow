@@ -59,6 +59,7 @@ export default function EditAssignmentModal({
   const assignment = Array.isArray(assignments) ? assignments.find((a: any) => a.id === assignmentId) : undefined;
 
   const [color, setColor] = useState("#3b82f6");
+  const [showOnCalendar, setShowOnCalendar] = useState(true);
   const [repeatPattern, setRepeatPattern] = useState("none");
   const [repeatDays, setRepeatDays] = useState<number[]>([]);
   const [repeatUntil, setRepeatUntil] = useState<Date | undefined>(undefined);
@@ -87,6 +88,7 @@ export default function EditAssignmentModal({
         dueDate: assignment.dueDate ? new Date(assignment.dueDate) : undefined,
       });
       setColor(assignment.color || "#3b82f6");
+      setShowOnCalendar(assignment.showOnCalendar !== undefined ? assignment.showOnCalendar : true);
       setRepeatPattern(assignment.repeatPattern || "none");
       setRepeatDays(assignment.repeatDays ? JSON.parse(assignment.repeatDays) : []);
       setRepeatUntil(assignment.repeatUntil ? new Date(assignment.repeatUntil) : undefined);
@@ -102,12 +104,15 @@ export default function EditAssignmentModal({
         classId: data.classId === "none" ? null : data.classId,
         estimatedHours: data.estimatedHours ? Number(data.estimatedHours) : undefined,
         color,
+        showOnCalendar,
         repeatPattern: repeatPattern === "none" ? null : repeatPattern,
         repeatDays: repeatPattern === "weekly" ? JSON.stringify(repeatDays) : null,
         repeatUntil: repeatPattern !== "none" ? repeatUntil : null,
       };
 
-      await apiRequest("PATCH", `/api/assignments/${assignmentId}`, updateData);
+      const response = await apiRequest("PATCH", `/api/assignments/${assignmentId}`, updateData);
+      if (response.status === 204) return;
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assignments"] });
@@ -328,6 +333,19 @@ export default function EditAssignmentModal({
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Calendar Visibility */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="edit-showOnCalendar"
+                checked={showOnCalendar}
+                onCheckedChange={(checked) => setShowOnCalendar(!!checked)}
+                data-testid="checkbox-edit-show-on-calendar"
+              />
+              <Label htmlFor="edit-showOnCalendar" className="text-white cursor-pointer">
+                Show on Calendar
+              </Label>
             </div>
 
             {/* Repeat Pattern */}

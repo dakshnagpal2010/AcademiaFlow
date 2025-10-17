@@ -46,6 +46,7 @@ export default function AddHomeworkModal({
     estimatedHours: "",
     dueDate: undefined as Date | undefined,
     color: "#3b82f6",
+    showOnCalendar: true,
     repeatPattern: "none",
     repeatDays: [] as number[],
     repeatUntil: undefined as Date | undefined,
@@ -59,7 +60,7 @@ export default function AddHomeworkModal({
 
   const addAssignmentMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("POST", "/api/assignments", {
+      const response = await apiRequest("POST", "/api/assignments", {
         ...data,
         classId: data.classId === "none" ? null : data.classId,
         estimatedHours: data.estimatedHours ? parseInt(data.estimatedHours) : undefined,
@@ -68,6 +69,8 @@ export default function AddHomeworkModal({
         repeatUntil: data.repeatPattern !== "none" ? data.repeatUntil : null,
         repeatPattern: data.repeatPattern === "none" ? null : data.repeatPattern,
       });
+      if (response.status === 204) return;
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assignments"] });
@@ -86,6 +89,7 @@ export default function AddHomeworkModal({
         estimatedHours: "",
         dueDate: undefined,
         color: "#3b82f6",
+        showOnCalendar: true,
         repeatPattern: "none",
         repeatDays: [],
         repeatUntil: undefined,
@@ -254,6 +258,19 @@ export default function AddHomeworkModal({
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Calendar Visibility */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="showOnCalendar"
+              checked={formData.showOnCalendar}
+              onCheckedChange={(checked) => setFormData({ ...formData, showOnCalendar: !!checked })}
+              data-testid="checkbox-show-on-calendar"
+            />
+            <Label htmlFor="showOnCalendar" className="text-white cursor-pointer">
+              Show on Calendar
+            </Label>
           </div>
 
           {/* Repeat Pattern */}

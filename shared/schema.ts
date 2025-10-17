@@ -77,6 +77,7 @@ export const assignments = pgTable("assignments", {
   actualHours: integer("actual_hours"),
   completedAt: timestamp("completed_at"),
   color: varchar("color").default("#3b82f6"), // Color for calendar display
+  showOnCalendar: boolean("show_on_calendar").default(true), // Toggle visibility on calendar
   repeatPattern: varchar("repeat_pattern"), // none, daily, weekly, monthly, yearly
   repeatDays: text("repeat_days"), // JSON array for weekly repeats [0,1,2,3,4,5,6] (Sunday=0)
   repeatUntil: timestamp("repeat_until"), // End date for repeating events

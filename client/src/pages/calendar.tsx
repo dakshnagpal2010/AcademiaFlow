@@ -156,6 +156,8 @@ export default function Calendar() {
     if (!assignments) return [];
     
     return assignments.filter((assignment: any) => {
+      // Only show assignments that are marked to show on calendar
+      if (assignment.showOnCalendar === false) return false;
       if (!assignment.dueDate) return false;
       
       const dueDate = parseISO(assignment.dueDate);
