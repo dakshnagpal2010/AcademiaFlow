@@ -25,13 +25,11 @@ export default function AIAssistant() {
 
   const chatMutation = useMutation({
     mutationFn: async (userMessage: string) => {
-      const response = await apiRequest<{ message: Message }>("/api/ai/chat", {
-        method: "POST",
-        body: {
-          messages: [...messages, { role: "user", content: userMessage }]
-        },
+      const response = await apiRequest("POST", "/api/ai/chat", {
+        messages: [...messages, { role: "user", content: userMessage }]
       });
-      return response;
+      const data = await response.json() as { message: Message };
+      return data;
     },
     onSuccess: (data) => {
       setMessages(prev => [...prev, data.message]);
