@@ -93,7 +93,8 @@ export default function Plans() {
   // Create plan mutation
   const createPlanMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("POST", "/api/plans", data);
+      const response = await apiRequest("POST", "/api/plans", data);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/plans"] });
@@ -133,7 +134,8 @@ export default function Plans() {
   // Update plan mutation
   const updatePlanMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      await apiRequest("PATCH", `/api/plans/${id}`, data);
+      const response = await apiRequest("PATCH", `/api/plans/${id}`, data);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/plans"] });
@@ -167,7 +169,9 @@ export default function Plans() {
   // Delete plan mutation
   const deletePlanMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest("DELETE", `/api/plans/${id}`);
+      const response = await apiRequest("DELETE", `/api/plans/${id}`);
+      // DELETE returns 204 with no body
+      return null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/plans"] });
