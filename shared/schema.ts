@@ -42,6 +42,8 @@ export const users = pgTable("users", {
   animationsEnabled: boolean("animations_enabled").default(true),
   compactMode: boolean("compact_mode").default(false),
   isPremium: boolean("is_premium").default(false),
+  aiMessagesUsed: integer("ai_messages_used").default(0),
+  aiMessagesResetDate: timestamp("ai_messages_reset_date").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -58,6 +60,7 @@ export const classes = pgTable("classes", {
   room: varchar("room"),
   credits: integer("credits"),
   description: text("description"),
+  gpaScale: varchar("gpa_scale").default("5.0"), // NA, 5.0, 5.5, 6.0
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -105,6 +108,20 @@ export const calendarNotes = pgTable("calendar_notes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Calendar events table
+export const calendarEvents = pgTable("calendar_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  date: date("date").notNull(),
+  time: varchar("time"),
+  color: varchar("color").default("#3b82f6"),
+  notified: boolean("notified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // ChronoPlan plans table (for managing multiple plans)
 export const chronoPlans = pgTable("chrono_plans", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -116,6 +133,43 @@ export const chronoPlans = pgTable("chrono_plans", {
   isTemplate: boolean("is_template").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Grades table
+export const grades = pgTable("grades", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  classId: varchar("class_id").notNull().references(() => classes.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  score: integer("score").notNull(),
+  maxScore: integer("max_score").notNull().default(100),
+  weight: integer("weight").notNull().default(100),
+  category: varchar("category"),
+  date: date("date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Plan slots table (for detailed plan items)
+export const planSlots = pgTable("plan_slots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  planId: varchar("plan_id").notNull().references(() => chronoPlans.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type").notNull().default("slot"), // slot or note
+  title: varchar("title"),
+  timeSlot: varchar("time_slot"),
+  details: text("details"),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Notification reads table
+export const notificationReads = pgTable("notification_reads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  notificationId: varchar("notification_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // ChronoPlan time slots table
@@ -142,8 +196,12 @@ export const usersRelations = relations(users, ({ many }) => ({
   assignments: many(assignments),
   activities: many(activities),
   calendarNotes: many(calendarNotes),
+  calendarEvents: many(calendarEvents),
+  grades: many(grades),
   chronoPlans: many(chronoPlans),
   chronoTimeSlots: many(chronoTimeSlots),
+  planSlots: many(planSlots),
+  notificationReads: many(notificationReads),
 }));
 
 export const classesRelations = relations(classes, ({ one, many }) => ({
@@ -152,6 +210,7 @@ export const classesRelations = relations(classes, ({ one, many }) => ({
     references: [users.id],
   }),
   assignments: many(assignments),
+  grades: many(grades),
 }));
 
 export const assignmentsRelations = relations(assignments, ({ one }) => ({
@@ -185,6 +244,7 @@ export const chronoPlansRelations = relations(chronoPlans, ({ one, many }) => ({
     references: [users.id],
   }),
   timeSlots: many(chronoTimeSlots),
+  planSlots: many(planSlots),
 }));
 
 export const chronoTimeSlotsRelations = relations(chronoTimeSlots, ({ one }) => ({
@@ -195,6 +255,42 @@ export const chronoTimeSlotsRelations = relations(chronoTimeSlots, ({ one }) => 
   plan: one(chronoPlans, {
     fields: [chronoTimeSlots.planId],
     references: [chronoPlans.id],
+  }),
+}));
+
+export const calendarEventsRelations = relations(calendarEvents, ({ one }) => ({
+  user: one(users, {
+    fields: [calendarEvents.userId],
+    references: [users.id],
+  }),
+}));
+
+export const gradesRelations = relations(grades, ({ one }) => ({
+  user: one(users, {
+    fields: [grades.userId],
+    references: [users.id],
+  }),
+  class: one(classes, {
+    fields: [grades.classId],
+    references: [classes.id],
+  }),
+}));
+
+export const planSlotsRelations = relations(planSlots, ({ one }) => ({
+  user: one(users, {
+    fields: [planSlots.userId],
+    references: [users.id],
+  }),
+  plan: one(chronoPlans, {
+    fields: [planSlots.planId],
+    references: [chronoPlans.id],
+  }),
+}));
+
+export const notificationReadsRelations = relations(notificationReads, ({ one }) => ({
+  user: one(users, {
+    fields: [notificationReads.userId],
+    references: [users.id],
   }),
 }));
 
@@ -231,6 +327,7 @@ export const insertAssignmentSchema = createInsertSchema(assignments).omit({
   completedAt: true,
 }).extend({
   dueDate: z.union([z.date(), z.string().transform((str) => new Date(str))]).optional(),
+  repeatUntil: z.union([z.date(), z.string().transform((str) => new Date(str)), z.null()]).optional(),
 });
 
 export const insertActivitySchema = createInsertSchema(activities).omit({
@@ -256,6 +353,29 @@ export const insertChronoTimeSlotSchema = createInsertSchema(chronoTimeSlots).om
   updatedAt: true,
 });
 
+export const insertCalendarEventSchema = createInsertSchema(calendarEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGradeSchema = createInsertSchema(grades).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPlanSlotSchema = createInsertSchema(planSlots).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNotificationReadSchema = createInsertSchema(notificationReads).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Update schemas
 export const updateUserSchema = insertUserSchema.partial();
 export const updateClassSchema = insertClassSchema.partial().omit({ userId: true });
@@ -265,6 +385,9 @@ export const updateAssignmentSchema = insertAssignmentSchema.partial().omit({ us
 export const updateCalendarNoteSchema = insertCalendarNoteSchema.partial().omit({ userId: true });
 export const updateChronoPlanSchema = insertChronoPlanSchema.partial().omit({ userId: true });
 export const updateChronoTimeSlotSchema = insertChronoTimeSlotSchema.partial().omit({ userId: true });
+export const updateCalendarEventSchema = insertCalendarEventSchema.partial().omit({ userId: true });
+export const updateGradeSchema = insertGradeSchema.partial().omit({ userId: true });
+export const updatePlanSlotSchema = insertPlanSlotSchema.partial().omit({ userId: true });
 
 // Types
 export type SignUp = z.infer<typeof signUpSchema>;
@@ -289,3 +412,14 @@ export type UpdateChronoPlan = z.infer<typeof updateChronoPlanSchema>;
 export type InsertChronoTimeSlot = z.infer<typeof insertChronoTimeSlotSchema>;
 export type ChronoTimeSlot = typeof chronoTimeSlots.$inferSelect;
 export type UpdateChronoTimeSlot = z.infer<typeof updateChronoTimeSlotSchema>;
+export type InsertCalendarEvent = z.infer<typeof insertCalendarEventSchema>;
+export type CalendarEvent = typeof calendarEvents.$inferSelect;
+export type UpdateCalendarEvent = z.infer<typeof updateCalendarEventSchema>;
+export type InsertGrade = z.infer<typeof insertGradeSchema>;
+export type Grade = typeof grades.$inferSelect;
+export type UpdateGrade = z.infer<typeof updateGradeSchema>;
+export type InsertPlanSlot = z.infer<typeof insertPlanSlotSchema>;
+export type PlanSlot = typeof planSlots.$inferSelect;
+export type UpdatePlanSlot = z.infer<typeof updatePlanSlotSchema>;
+export type InsertNotificationRead = z.infer<typeof insertNotificationReadSchema>;
+export type NotificationRead = typeof notificationReads.$inferSelect;

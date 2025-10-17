@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AddClassModalProps {
   open: boolean;
@@ -34,6 +35,7 @@ export default function AddClassModal({
     credits: "",
     description: "",
     color: "#3b82f6",
+    gpaScale: "5.0",
   });
 
   const addClassMutation = useMutation({
@@ -59,6 +61,7 @@ export default function AddClassModal({
         credits: "",
         description: "",
         color: "#3b82f6",
+        gpaScale: "5.0",
       });
     },
     onError: (error) => {
@@ -168,6 +171,21 @@ export default function AddClassModal({
                 data-testid="input-credits"
               />
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="gpaScale" className="text-white">GPA Scale</Label>
+            <Select value={formData.gpaScale} onValueChange={(value) => setFormData({ ...formData, gpaScale: value })}>
+              <SelectTrigger className="bg-dark-tertiary border-gray-600 text-white mt-1" data-testid="select-gpa-scale">
+                <SelectValue placeholder="Select GPA Scale" />
+              </SelectTrigger>
+              <SelectContent className="bg-dark-secondary border-gray-700">
+                <SelectItem value="NA" className="text-white hover:bg-dark-tertiary">NA (Not Graded)</SelectItem>
+                <SelectItem value="5.0" className="text-white hover:bg-dark-tertiary">5.0 (On-Level)</SelectItem>
+                <SelectItem value="5.5" className="text-white hover:bg-dark-tertiary">5.5 (Pre-AP/Advanced)</SelectItem>
+                <SelectItem value="6.0" className="text-white hover:bg-dark-tertiary">6.0 (AP/Honors)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
