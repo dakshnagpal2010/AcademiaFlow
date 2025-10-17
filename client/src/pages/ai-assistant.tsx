@@ -17,7 +17,7 @@ export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm your AI Study Assistant powered by OpenAI's GPT-3.5 model. I'm here to help you with your academic questions, study tips, and more. How can I assist you today?"
+      content: "Hello! I'm your AI Study Assistant powered by Google's Gemini AI. I'm here to help you with your academic questions, study tips, and more. How can I assist you today?"
     }
   ]);
   const [inputMessage, setInputMessage] = useState("");
@@ -73,7 +73,7 @@ export default function AIAssistant() {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-white">AI Study Assistant</h1>
-              <p className="text-gray-400 text-sm">Powered by OpenAI GPT-3.5</p>
+              <p className="text-gray-400 text-sm">Powered by Google Gemini</p>
             </div>
           </div>
         </header>
