@@ -50,7 +50,8 @@ export default function CalendarNoteModal({
 
   const saveNoteMutation = useMutation({
     mutationFn: async (data: { date: string; note: string }) => {
-      return await apiRequest('POST', '/api/calendar-notes', data);
+      const response = await apiRequest('POST', '/api/calendar-notes', data);
+      return await response.json();
     },
     onSuccess: () => {
       toast({
@@ -58,6 +59,7 @@ export default function CalendarNoteModal({
         description: "Your calendar note has been saved successfully!",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/calendar-notes'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/calendar-notes/${dateStr}`] });
       onOpenChange(false);
       setNote("");
     },
