@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface EditClassModalProps {
   open: boolean;
@@ -36,6 +37,7 @@ export default function EditClassModal({
     credits: "",
     description: "",
     color: "#3b82f6",
+    gpaScale: "5.0",
   });
 
   // Fetch classes to get the current class data
@@ -60,6 +62,7 @@ export default function EditClassModal({
           credits: currentClass.credits?.toString() || "",
           description: currentClass.description || "",
           color: currentClass.color || "#3b82f6",
+          gpaScale: currentClass.gpaScale || "5.0",
         });
       }
     }
@@ -188,6 +191,21 @@ export default function EditClassModal({
                 data-testid="input-edit-credits"
               />
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="gpaScale" className="text-white">GPA Scale</Label>
+            <Select value={formData.gpaScale} onValueChange={(value) => setFormData({ ...formData, gpaScale: value })}>
+              <SelectTrigger className="bg-dark-tertiary border-gray-600 text-white mt-1" data-testid="select-edit-gpa-scale">
+                <SelectValue placeholder="Select GPA Scale" />
+              </SelectTrigger>
+              <SelectContent className="bg-dark-secondary border-gray-700">
+                <SelectItem value="NA" className="text-white hover:bg-dark-tertiary">NA (Not Graded)</SelectItem>
+                <SelectItem value="5.0" className="text-white hover:bg-dark-tertiary">5.0 (On-Level)</SelectItem>
+                <SelectItem value="5.5" className="text-white hover:bg-dark-tertiary">5.5 (Pre-AP/Advanced)</SelectItem>
+                <SelectItem value="6.0" className="text-white hover:bg-dark-tertiary">6.0 (AP/Honors)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

@@ -44,6 +44,12 @@ export default function PremiumUpgradeModal({ open, onOpenChange }: PremiumUpgra
       highlight: true,
     },
     {
+      icon: Calendar,
+      title: "Unlimited ChronoPlan",
+      description: "Create unlimited plans with detailed time slots and notes",
+      highlight: true,
+    },
+    {
       icon: TrendingUp,
       title: "Advanced Analytics",
       description: "Deep insights into your study patterns and performance",
@@ -121,7 +127,7 @@ export default function PremiumUpgradeModal({ open, onOpenChange }: PremiumUpgra
                 </CardTitle>
                 <CardDescription>AI-powered academic excellence</CardDescription>
                 <div className="text-3xl font-bold text-white">
-                  $9.99<span className="text-sm font-normal">/month</span>
+                  $6.99<span className="text-sm font-normal">/year</span>
                 </div>
                 <p className="text-xs text-gray-400">Everything in Free, plus:</p>
               </CardHeader>

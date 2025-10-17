@@ -66,7 +66,7 @@ export default function AddHomeworkModal({
         estimatedHours: data.estimatedHours ? parseInt(data.estimatedHours) : undefined,
         dueDate: data.dueDate || undefined,
         repeatDays: data.repeatPattern === "weekly" ? JSON.stringify(data.repeatDays) : null,
-        repeatUntil: data.repeatPattern !== "none" ? data.repeatUntil : null,
+        repeatUntil: data.repeatPattern !== "none" && data.repeatUntil ? data.repeatUntil.toISOString() : null,
         repeatPattern: data.repeatPattern === "none" ? null : data.repeatPattern,
       });
       if (response.status === 204) return;
