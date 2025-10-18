@@ -13,6 +13,84 @@ interface Message {
   content: string;
 }
 
+// Simple markdown renderer for AI responses
+function renderMarkdown(text: string) {
+  // Split by lines for processing
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  
+  lines.forEach((line, lineIndex) => {
+    let processedLine = line;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    
+    // Process bold (**text**)
+    const boldRegex = /\*\*([^*]+)\*\*/g;
+    let match;
+    const matches: Array<{ start: number; end: number; text: string; type: 'bold' | 'italic' }> = [];
+    
+    while ((match = boldRegex.exec(line)) !== null) {
+      matches.push({ start: match.index, end: match.index + match[0].length, text: match[1], type: 'bold' });
+    }
+    
+    // Process italics (*text*)
+    const italicRegex = /(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g;
+    while ((match = italicRegex.exec(line)) !== null) {
+      // Check if this isn't part of a bold match
+      const isBold = matches.some(m => match.index >= m.start && match.index < m.end);
+      if (!isBold) {
+        matches.push({ start: match.index, end: match.index + match[0].length, text: match[1], type: 'italic' });
+      }
+    }
+    
+    // Sort matches by start position
+    matches.sort((a, b) => a.start - b.start);
+    
+    // Build the line with formatted text
+    matches.forEach((m, i) => {
+      // Add text before this match
+      if (m.start > lastIndex) {
+        parts.push(line.substring(lastIndex, m.start));
+      }
+      
+      // Add formatted text
+      if (m.type === 'bold') {
+        parts.push(<strong key={`${lineIndex}-${i}`} className="font-bold">{m.text}</strong>);
+      } else {
+        parts.push(<em key={`${lineIndex}-${i}`} className="italic">{m.text}</em>);
+      }
+      
+      lastIndex = m.end;
+    });
+    
+    // Add remaining text
+    if (lastIndex < line.length) {
+      parts.push(line.substring(lastIndex));
+    }
+    
+    // Check if line is a bullet point
+    const isBullet = line.trim().match(/^[-*•]\s/);
+    
+    if (isBullet) {
+      elements.push(
+        <div key={lineIndex} className="flex items-start space-x-2 my-1">
+          <span className="text-primary-400 mt-0.5">•</span>
+          <span>{parts.length > 0 ? parts : line.replace(/^[-*•]\s/, '')}</span>
+        </div>
+      );
+    } else if (parts.length > 0 || line.trim()) {
+      elements.push(
+        <div key={lineIndex}>{parts.length > 0 ? parts : line}</div>
+      );
+    } else {
+      // Empty line - add spacing
+      elements.push(<div key={lineIndex} className="h-2" />);
+    }
+  });
+  
+  return <div className="space-y-0.5">{elements}</div>;
+}
+
 export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -103,7 +181,9 @@ export default function AIAssistant() {
                           : "bg-dark-tertiary text-gray-200"
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <div className="text-sm">
+                        {message.role === "assistant" ? renderMarkdown(message.content) : message.content}
+                      </div>
                     </div>
                     {message.role === "user" && (
                       <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">

@@ -21,7 +21,9 @@ import {
   Shield,
   Clock,
   Sparkles,
-  Layers
+  Layers,
+  Award,
+  Calculator
 } from "lucide-react";
 import ProfileCustomizationModal from "./profile-customization-modal";
 import PremiumUpgradeModal from "./premium-upgrade-modal";
@@ -187,6 +189,38 @@ export default function Sidebar() {
               >
                 <Bot className="h-5 w-5" />
                 <span className="hidden lg:block">AI Assistant</span>
+              </div>
+            </Link>
+
+            {/* Grades */}
+            <Link href="/grades">
+              <div
+                className={`flex items-center justify-center lg:justify-start lg:space-x-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+                  isActive("/grades")
+                    ? "bg-primary-500 text-white"
+                    : "text-gray-300 hover:bg-dark-tertiary hover:text-white"
+                }`}
+                data-testid="nav-grades"
+                title="Grades"
+              >
+                <Award className="h-5 w-5" />
+                <span className="hidden lg:block">Grades</span>
+              </div>
+            </Link>
+
+            {/* GPA Calculator */}
+            <Link href="/gpa-calculator">
+              <div
+                className={`flex items-center justify-center lg:justify-start lg:space-x-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+                  isActive("/gpa-calculator")
+                    ? "bg-primary-500 text-white"
+                    : "text-gray-300 hover:bg-dark-tertiary hover:text-white"
+                }`}
+                data-testid="nav-gpa-calculator"
+                title="GPA Calculator"
+              >
+                <Calculator className="h-5 w-5" />
+                <span className="hidden lg:block">GPA Calculator</span>
               </div>
             </Link>
 

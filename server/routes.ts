@@ -10,12 +10,16 @@ import {
   updateAssignmentSchema,
   insertCalendarNoteSchema,
   updateCalendarNoteSchema,
+  insertCalendarEventSchema,
+  updateCalendarEventSchema,
   insertChronoPlanSchema,
   updateChronoPlanSchema,
   insertChronoTimeSlotSchema,
   updateChronoTimeSlotSchema,
   insertPlanSlotSchema,
   updatePlanSlotSchema,
+  insertGradeSchema,
+  updateGradeSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -427,6 +431,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calendar events routes
+  app.get('/api/calendar-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const events = await storage.getCalendarEvents(userId);
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching calendar events:", error);
+      res.status(500).json({ message: "Failed to fetch calendar events" });
+    }
+  });
+
+  app.post('/api/calendar-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const eventData = insertCalendarEventSchema.parse({ ...req.body, userId });
+      const newEvent = await storage.createCalendarEvent(eventData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId,
+        type: 'event_created',
+        description: `Created event: ${newEvent.title}`,
+        metadata: { eventId: newEvent.id },
+      });
+      
+      res.json(newEvent);
+    } catch (error) {
+      console.error("Error creating calendar event:", error);
+      res.status(500).json({ message: "Failed to create calendar event" });
+    }
+  });
+
+  app.patch('/api/calendar-events/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      const updates = updateCalendarEventSchema.parse(req.body);
+      const updatedEvent = await storage.updateCalendarEvent(id, userId, updates);
+      if (!updatedEvent) {
+        return res.status(404).json({ message: "Calendar event not found" });
+      }
+      res.json(updatedEvent);
+    } catch (error) {
+      console.error("Error updating calendar event:", error);
+      res.status(500).json({ message: "Failed to update calendar event" });
+    }
+  });
+
+  app.delete('/api/calendar-events/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      const deleted = await storage.deleteCalendarEvent(id, userId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Calendar event not found" });
+      }
+      res.json({ message: "Calendar event deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting calendar event:", error);
+      res.status(500).json({ message: "Failed to delete calendar event" });
+    }
+  });
+
   // Chrono Plans routes
   app.get('/api/plans', isAuthenticated, async (req: any, res) => {
     try {
@@ -638,6 +706,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting plan slot:", error);
       res.status(500).json({ message: "Failed to delete plan slot" });
+    }
+  });
+
+  // Grades routes
+  app.get('/api/grades', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const grades = await storage.getGrades(userId);
+      res.json(grades);
+    } catch (error) {
+      console.error("Error fetching grades:", error);
+      res.status(500).json({ message: "Failed to fetch grades" });
+    }
+  });
+
+  app.post('/api/grades', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const gradeData = insertGradeSchema.parse({ ...req.body, userId });
+      const newGrade = await storage.createGrade(gradeData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId,
+        type: 'grade_added',
+        description: `Added grade: ${newGrade.name}`,
+        metadata: { gradeId: newGrade.id },
+      });
+      
+      res.json(newGrade);
+    } catch (error) {
+      console.error("Error creating grade:", error);
+      res.status(500).json({ message: "Failed to create grade" });
+    }
+  });
+
+  app.patch('/api/grades/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      const updates = updateGradeSchema.parse(req.body);
+      const updatedGrade = await storage.updateGrade(id, userId, updates);
+      if (!updatedGrade) {
+        return res.status(404).json({ message: "Grade not found" });
+      }
+      res.json(updatedGrade);
+    } catch (error) {
+      console.error("Error updating grade:", error);
+      res.status(500).json({ message: "Failed to update grade" });
+    }
+  });
+
+  app.delete('/api/grades/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.userId;
+      
+      const grade = await storage.getGrade(id);
+      const deleted = await storage.deleteGrade(id, userId);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Grade not found" });
+      }
+      
+      // Log activity
+      await storage.createActivity({
+        userId,
+        type: 'grade_deleted',
+        description: `Deleted grade: ${grade?.name || 'Unknown'}`,
+      });
+      
+      res.json({ message: "Grade deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting grade:", error);
+      res.status(500).json({ message: "Failed to delete grade" });
     }
   });
 
