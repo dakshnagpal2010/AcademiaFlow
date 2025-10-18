@@ -20,6 +20,8 @@ import Plans from "@/pages/plans";
 import DailyPlanner from "@/pages/daily-planner";
 import Settings from "@/pages/settings";
 import AIAssistant from "@/pages/ai-assistant";
+import Grades from "@/pages/grades";
+import GPACalculator from "@/pages/gpa-calculator";
 import Sidebar from "@/components/sidebar";
 
 function AuthenticatedLayout() {
@@ -38,6 +40,8 @@ function AuthenticatedLayout() {
           <Route path="/plans" component={Plans} />
           <Route path="/daily-planner" component={DailyPlanner} />
           <Route path="/ai-assistant" component={AIAssistant} />
+          <Route path="/grades" component={Grades} />
+          <Route path="/gpa-calculator" component={GPACalculator} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

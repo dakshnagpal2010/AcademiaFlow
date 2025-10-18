@@ -4,9 +4,11 @@ import {
   assignments,
   activities,
   calendarNotes,
+  calendarEvents,
   chronoPlans,
   chronoTimeSlots,
   planSlots,
+  grades,
   type User,
   type UpsertUser,
   type Class,
@@ -21,6 +23,9 @@ import {
   type CalendarNote,
   type InsertCalendarNote,
   type UpdateCalendarNote,
+  type CalendarEvent,
+  type InsertCalendarEvent,
+  type UpdateCalendarEvent,
   type ChronoPlan,
   type InsertChronoPlan,
   type UpdateChronoPlan,
@@ -30,6 +35,9 @@ import {
   type PlanSlot,
   type InsertPlanSlot,
   type UpdatePlanSlot,
+  type Grade,
+  type InsertGrade,
+  type UpdateGrade,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, or, asc } from "drizzle-orm";
@@ -70,6 +78,13 @@ export interface IStorage {
   updateCalendarNote(id: string, updates: UpdateCalendarNote): Promise<CalendarNote>;
   deleteCalendarNote(id: string): Promise<void>;
 
+  // Calendar events operations
+  getCalendarEvents(userId: string): Promise<CalendarEvent[]>;
+  getCalendarEvent(id: string): Promise<CalendarEvent | undefined>;
+  createCalendarEvent(eventData: InsertCalendarEvent): Promise<CalendarEvent>;
+  updateCalendarEvent(id: string, userId: string, updates: UpdateCalendarEvent): Promise<CalendarEvent | undefined>;
+  deleteCalendarEvent(id: string, userId: string): Promise<boolean>;
+
   // ChronoPlan operations
   getChronoPlans(userId: string): Promise<ChronoPlan[]>;
   getChronoPlan(id: string): Promise<ChronoPlan | undefined>;
@@ -90,6 +105,14 @@ export interface IStorage {
   createPlanSlot(slotData: InsertPlanSlot): Promise<PlanSlot>;
   updatePlanSlot(id: string, updates: UpdatePlanSlot): Promise<PlanSlot>;
   deletePlanSlot(id: string): Promise<void>;
+
+  // Grade operations
+  getGrades(userId: string): Promise<Grade[]>;
+  getGradesByClass(classId: string): Promise<Grade[]>;
+  getGrade(id: string): Promise<Grade | undefined>;
+  createGrade(gradeData: InsertGrade): Promise<Grade>;
+  updateGrade(id: string, userId: string, updates: UpdateGrade): Promise<Grade | undefined>;
+  deleteGrade(id: string, userId: string): Promise<boolean>;
 
   // Dashboard stats
   getDashboardStats(userId: string): Promise<{
@@ -310,6 +333,39 @@ export class DatabaseStorage implements IStorage {
     await db.delete(calendarNotes).where(eq(calendarNotes.id, id));
   }
 
+  // Calendar events operations
+  async getCalendarEvents(userId: string): Promise<CalendarEvent[]> {
+    return await db
+      .select()
+      .from(calendarEvents)
+      .where(eq(calendarEvents.userId, userId))
+      .orderBy(desc(calendarEvents.date));
+  }
+
+  async getCalendarEvent(id: string): Promise<CalendarEvent | undefined> {
+    const [event] = await db.select().from(calendarEvents).where(eq(calendarEvents.id, id));
+    return event;
+  }
+
+  async createCalendarEvent(eventData: InsertCalendarEvent): Promise<CalendarEvent> {
+    const [newEvent] = await db.insert(calendarEvents).values(eventData).returning();
+    return newEvent;
+  }
+
+  async updateCalendarEvent(id: string, userId: string, updates: UpdateCalendarEvent): Promise<CalendarEvent | undefined> {
+    const [updatedEvent] = await db
+      .update(calendarEvents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(calendarEvents.id, id), eq(calendarEvents.userId, userId)))
+      .returning();
+    return updatedEvent;
+  }
+
+  async deleteCalendarEvent(id: string, userId: string): Promise<boolean> {
+    const result = await db.delete(calendarEvents).where(and(eq(calendarEvents.id, id), eq(calendarEvents.userId, userId)));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
   // Dashboard stats
   async getDashboardStats(userId: string): Promise<{
     totalClasses: number;
@@ -503,6 +559,47 @@ export class DatabaseStorage implements IStorage {
 
   async deletePlanSlot(id: string): Promise<void> {
     await db.delete(planSlots).where(eq(planSlots.id, id));
+  }
+
+  // Grade operations
+  async getGrades(userId: string): Promise<Grade[]> {
+    return await db
+      .select()
+      .from(grades)
+      .where(eq(grades.userId, userId))
+      .orderBy(desc(grades.date));
+  }
+
+  async getGradesByClass(classId: string): Promise<Grade[]> {
+    return await db
+      .select()
+      .from(grades)
+      .where(eq(grades.classId, classId))
+      .orderBy(desc(grades.date));
+  }
+
+  async getGrade(id: string): Promise<Grade | undefined> {
+    const [grade] = await db.select().from(grades).where(eq(grades.id, id));
+    return grade;
+  }
+
+  async createGrade(gradeData: InsertGrade): Promise<Grade> {
+    const [newGrade] = await db.insert(grades).values(gradeData).returning();
+    return newGrade;
+  }
+
+  async updateGrade(id: string, userId: string, updates: UpdateGrade): Promise<Grade | undefined> {
+    const [updatedGrade] = await db
+      .update(grades)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(grades.id, id), eq(grades.userId, userId)))
+      .returning();
+    return updatedGrade;
+  }
+
+  async deleteGrade(id: string, userId: string): Promise<boolean> {
+    const result = await db.delete(grades).where(and(eq(grades.id, id), eq(grades.userId, userId)));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 }
 
