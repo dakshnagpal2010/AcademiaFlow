@@ -6,6 +6,7 @@ import {
   calendarNotes,
   chronoPlans,
   chronoTimeSlots,
+  planSlots,
   type User,
   type UpsertUser,
   type Class,
@@ -26,6 +27,9 @@ import {
   type ChronoTimeSlot,
   type InsertChronoTimeSlot,
   type UpdateChronoTimeSlot,
+  type PlanSlot,
+  type InsertPlanSlot,
+  type UpdatePlanSlot,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, or, asc } from "drizzle-orm";
@@ -79,6 +83,13 @@ export interface IStorage {
   createChronoTimeSlot(slotData: InsertChronoTimeSlot): Promise<ChronoTimeSlot>;
   updateChronoTimeSlot(id: string, updates: UpdateChronoTimeSlot): Promise<ChronoTimeSlot>;
   deleteChronoTimeSlot(id: string): Promise<void>;
+
+  // PlanSlot operations
+  getPlanSlots(planId: string): Promise<PlanSlot[]>;
+  getPlanSlot(id: string): Promise<PlanSlot | undefined>;
+  createPlanSlot(slotData: InsertPlanSlot): Promise<PlanSlot>;
+  updatePlanSlot(id: string, updates: UpdatePlanSlot): Promise<PlanSlot>;
+  deletePlanSlot(id: string): Promise<void>;
 
   // Dashboard stats
   getDashboardStats(userId: string): Promise<{
@@ -460,6 +471,38 @@ export class DatabaseStorage implements IStorage {
 
   async deleteChronoTimeSlot(id: string): Promise<void> {
     await db.delete(chronoTimeSlots).where(eq(chronoTimeSlots.id, id));
+  }
+
+  // PlanSlot operations
+  async getPlanSlots(planId: string): Promise<PlanSlot[]> {
+    return await db
+      .select()
+      .from(planSlots)
+      .where(eq(planSlots.planId, planId))
+      .orderBy(asc(planSlots.displayOrder));
+  }
+
+  async getPlanSlot(id: string): Promise<PlanSlot | undefined> {
+    const [slot] = await db.select().from(planSlots).where(eq(planSlots.id, id));
+    return slot;
+  }
+
+  async createPlanSlot(slotData: InsertPlanSlot): Promise<PlanSlot> {
+    const [newSlot] = await db.insert(planSlots).values(slotData).returning();
+    return newSlot;
+  }
+
+  async updatePlanSlot(id: string, updates: UpdatePlanSlot): Promise<PlanSlot> {
+    const [updatedSlot] = await db
+      .update(planSlots)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(planSlots.id, id))
+      .returning();
+    return updatedSlot;
+  }
+
+  async deletePlanSlot(id: string): Promise<void> {
+    await db.delete(planSlots).where(eq(planSlots.id, id));
   }
 }
 

@@ -14,6 +14,8 @@ import {
   updateChronoPlanSchema,
   insertChronoTimeSlotSchema,
   updateChronoTimeSlotSchema,
+  insertPlanSlotSchema,
+  updatePlanSlotSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -588,6 +590,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error reordering chrono time slots:", error);
       res.status(500).json({ message: "Failed to reorder time slots" });
+    }
+  });
+
+  // Plan slots routes
+  app.get('/api/plans/:planId/slots', isAuthenticated, async (req: any, res) => {
+    try {
+      const { planId } = req.params;
+      const slots = await storage.getPlanSlots(planId);
+      res.json(slots);
+    } catch (error) {
+      console.error("Error fetching plan slots:", error);
+      res.status(500).json({ message: "Failed to fetch plan slots" });
+    }
+  });
+
+  app.post('/api/plans/:planId/slots', isAuthenticated, async (req: any, res) => {
+    try {
+      const { planId } = req.params;
+      const userId = req.userId;
+      const slotData = insertPlanSlotSchema.parse({ ...req.body, planId, userId });
+      const newSlot = await storage.createPlanSlot(slotData);
+      res.json(newSlot);
+    } catch (error) {
+      console.error("Error creating plan slot:", error);
+      res.status(500).json({ message: "Failed to create plan slot" });
+    }
+  });
+
+  app.patch('/api/plan-slots/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updatePlanSlotSchema.parse(req.body);
+      const updatedSlot = await storage.updatePlanSlot(id, updates);
+      res.json(updatedSlot);
+    } catch (error) {
+      console.error("Error updating plan slot:", error);
+      res.status(500).json({ message: "Failed to update plan slot" });
+    }
+  });
+
+  app.delete('/api/plan-slots/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deletePlanSlot(id);
+      res.json({ message: "Plan slot deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting plan slot:", error);
+      res.status(500).json({ message: "Failed to delete plan slot" });
     }
   });
 

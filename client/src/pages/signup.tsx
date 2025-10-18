@@ -12,10 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, GraduationCap, Users, Sparkles } from "lucide-react";
+import AcademiaFlowAnimation from "@/components/academia-flow-animation";
 
 export default function SignUpPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [showAnimation, setShowAnimation] = useState(false);
 
   const form = useForm<SignUp>({
     resolver: zodResolver(signUpSchema),
@@ -36,10 +38,7 @@ export default function SignUpPage() {
         title: "Welcome to AcademiaFlow!",
         description: "Your account has been created successfully.",
       });
-      // Wait 1 second then redirect to dashboard
-      setTimeout(() => {
-        setLocation("/");
-      }, 1000);
+      setShowAnimation(true);
     },
     onError: (error: Error) => {
       toast({
@@ -53,6 +52,16 @@ export default function SignUpPage() {
   const onSubmit = (data: SignUp) => {
     signUpMutation.mutate(data);
   };
+
+  if (showAnimation) {
+    return (
+      <AcademiaFlowAnimation
+        onComplete={() => {
+          window.location.href = "/";
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
