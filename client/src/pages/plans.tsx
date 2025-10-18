@@ -40,7 +40,10 @@ import {
   Camera,
   Gamepad2,
   Lightbulb,
-  CheckCircle
+  CheckCircle,
+  Eye,
+  Clock,
+  FileText
 } from "lucide-react";
 
 // Icon options for plans
@@ -72,8 +75,19 @@ export default function Plans() {
   
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showAddSlotModal, setShowAddSlotModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<any>(null);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [editingSlot, setEditingSlot] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  const [slotFormData, setSlotFormData] = useState({
+    title: "",
+    timeSlot: "",
+    details: "",
+    type: "slot" as "slot" | "note",
+  });
   
   const [formData, setFormData] = useState({
     name: "",
@@ -200,6 +214,37 @@ export default function Plans() {
     },
   });
 
+  // Plan slots query
+  const { data: planSlots } = useQuery({
+    queryKey: [`/api/plans/${selectedPlan?.id}/slots`],
+    enabled: !!selectedPlan,
+    retry: false,
+  });
+
+  // Create plan slot mutation
+  const createSlotMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("POST", `/api/plans/${selectedPlan.id}/slots`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/plans/${selectedPlan.id}/slots`] });
+      toast({ title: "Success", description: "Slot added successfully!" });
+      setShowAddSlotModal(false);
+      setSlotFormData({ title: "", timeSlot: "", details: "", type: "slot" });
+    },
+  });
+
+  // Delete plan slot mutation
+  const deleteSlotMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/plan-slots/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/plans/${selectedPlan.id}/slots`] });
+      toast({ title: "Success", description: "Slot deleted successfully!" });
+    },
+  });
+
   const handleCreatePlan = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
@@ -242,6 +287,26 @@ export default function Plans() {
     if (window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
       deletePlanMutation.mutate(id);
     }
+  };
+
+  const handleViewPlanDetails = (plan: any) => {
+    setSelectedPlan(plan);
+    setShowDetailModal(true);
+  };
+
+  const handleAddSlot = () => {
+    setEditingSlot(null);
+    setSlotFormData({ title: "", timeSlot: "", details: "", type: "slot" });
+    setShowAddSlotModal(true);
+  };
+
+  const handleSaveSlot = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!slotFormData.title.trim()) {
+      toast({ title: "Error", description: "Title is required.", variant: "destructive" });
+      return;
+    }
+    createSlotMutation.mutate(slotFormData);
   };
 
   const getIconComponent = (iconName: string) => {
@@ -371,6 +436,14 @@ export default function Plans() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="bg-dark-tertiary border-gray-600">
+                          <DropdownMenuItem 
+                            onClick={() => handleViewPlanDetails(plan)}
+                            className="text-gray-300 hover:bg-dark-secondary"
+                            data-testid={`button-view-plan-${plan.id}`}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleEditPlan(plan)}
                             className="text-gray-300 hover:bg-dark-secondary"
@@ -604,6 +677,185 @@ export default function Plans() {
                   setEditingPlan(null);
                 }}
                 data-testid="button-cancel-edit-plan"
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Plan Detail Modal */}
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="bg-dark-secondary border-gray-700 max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              {selectedPlan && getIconComponent(selectedPlan.icon) && (
+                <span style={{ color: selectedPlan.color }}>
+                  {(() => {
+                    const Icon = getIconComponent(selectedPlan.icon);
+                    return <Icon className="h-6 w-6" />;
+                  })()}
+                </span>
+              )}
+              {selectedPlan?.name}
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {selectedPlan?.description || "Manage plan slots and schedule"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-white">Plan Slots</h3>
+              <Button
+                onClick={handleAddSlot}
+                className="bg-primary-500 hover:bg-primary-600"
+                size="sm"
+                data-testid="button-add-plan-slot"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Slot
+              </Button>
+            </div>
+
+            {planSlots && planSlots.length > 0 ? (
+              <div className="space-y-2">
+                {planSlots.map((slot: any) => (
+                  <Card key={slot.id} className="bg-dark-tertiary border-gray-600">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            {slot.type === "slot" ? (
+                              <Clock className="h-4 w-4 text-primary-400" />
+                            ) : (
+                              <FileText className="h-4 w-4 text-purple-400" />
+                            )}
+                            <h4 className="font-medium text-white">{slot.title}</h4>
+                          </div>
+                          {slot.timeSlot && (
+                            <p className="text-sm text-gray-400 mt-1">⏰ {slot.timeSlot}</p>
+                          )}
+                          {slot.details && (
+                            <p className="text-sm text-gray-300 mt-2">{slot.details}</p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteSlotMutation.mutate(slot.id)}
+                          className="text-red-400 hover:text-red-300"
+                          data-testid={`button-delete-slot-${slot.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                <p className="text-gray-400">No slots added yet</p>
+                <p className="text-sm text-gray-500">Add time slots or notes to organize this plan</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Slot Modal */}
+      <Dialog open={showAddSlotModal} onOpenChange={setShowAddSlotModal}>
+        <DialogContent className="bg-dark-secondary border-gray-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Add Plan Slot</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Add a time slot or note to your plan
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveSlot} className="space-y-4">
+            <div>
+              <Label className="text-white">Type</Label>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant={slotFormData.type === "slot" ? "default" : "outline"}
+                  onClick={() => setSlotFormData({ ...slotFormData, type: "slot" })}
+                  className="flex-1"
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Time Slot
+                </Button>
+                <Button
+                  type="button"
+                  variant={slotFormData.type === "note" ? "default" : "outline"}
+                  onClick={() => setSlotFormData({ ...slotFormData, type: "note" })}
+                  className="flex-1"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Note
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="slotTitle" className="text-white">Title *</Label>
+              <Input
+                id="slotTitle"
+                value={slotFormData.title}
+                onChange={(e) => setSlotFormData({ ...slotFormData, title: e.target.value })}
+                placeholder="e.g., Morning Study, Exercise"
+                className="bg-dark-tertiary border-gray-600 text-white mt-1"
+                data-testid="input-slot-title"
+                required
+              />
+            </div>
+
+            {slotFormData.type === "slot" && (
+              <div>
+                <Label htmlFor="slotTime" className="text-white">Time Slot</Label>
+                <Input
+                  id="slotTime"
+                  value={slotFormData.timeSlot}
+                  onChange={(e) => setSlotFormData({ ...slotFormData, timeSlot: e.target.value })}
+                  placeholder="e.g., 9:00 AM - 10:00 AM"
+                  className="bg-dark-tertiary border-gray-600 text-white mt-1"
+                  data-testid="input-slot-time"
+                />
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="slotDetails" className="text-white">Details</Label>
+              <Textarea
+                id="slotDetails"
+                value={slotFormData.details}
+                onChange={(e) => setSlotFormData({ ...slotFormData, details: e.target.value })}
+                placeholder="Additional details or notes..."
+                className="bg-dark-tertiary border-gray-600 text-white mt-1"
+                rows={3}
+                data-testid="textarea-slot-details"
+              />
+            </div>
+
+            <div className="flex space-x-3 pt-4">
+              <Button
+                type="submit"
+                className="flex-1 bg-primary-500 hover:bg-primary-600 text-white"
+                disabled={createSlotMutation.isPending}
+                data-testid="button-save-slot"
+              >
+                {createSlotMutation.isPending ? "Adding..." : "Add Slot"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 border-gray-600 text-gray-300 hover:bg-dark-tertiary"
+                onClick={() => setShowAddSlotModal(false)}
+                data-testid="button-cancel-add-slot"
               >
                 Cancel
               </Button>

@@ -11,10 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, GraduationCap, Users, Sparkles, BookOpen } from "lucide-react";
+import AcademiaFlowAnimation from "@/components/academia-flow-animation";
 
 export default function SignInPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [showAnimation, setShowAnimation] = useState(false);
 
   const form = useForm<SignIn>({
     resolver: zodResolver(signInSchema),
@@ -33,10 +35,7 @@ export default function SignInPage() {
         title: "Welcome back!",
         description: "You've successfully signed in to AcademiaFlow.",
       });
-      // Wait 1 second then redirect to dashboard
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1000);
+      setShowAnimation(true);
     },
     onError: (error: Error) => {
       toast({
@@ -50,6 +49,16 @@ export default function SignInPage() {
   const onSubmit = (data: SignIn) => {
     signInMutation.mutate(data);
   };
+
+  if (showAnimation) {
+    return (
+      <AcademiaFlowAnimation
+        onComplete={() => {
+          window.location.href = "/";
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
